@@ -9,16 +9,31 @@ using namespace std;
 using namespace glm;
 
 GLuint VBO;
+GLint gPositionLocation;
+GLuint gScaleLocation;
 
 void renderScene()
 {
 	glClear(GL_COLOR_BUFFER_BIT);
 
+	static float scale = 0;
+	static float delta = 0.001f;
+	scale += delta;
+	if ((scale >= 1) || (scale <= -1))
+	{
+		delta *= -1;
+	}
+
+	//bind the uniform variable
+	glUniform1f(gScaleLocation, scale);
+
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(gPositionLocation);
+	glVertexAttribPointer(gPositionLocation, 3, GL_FLOAT, GL_FALSE, 0, 0);
 	glDrawArrays(GL_TRIANGLES, 0, 3);
-	glDisableVertexAttribArray(0);
+	glDisableVertexAttribArray(gPositionLocation);
+
+	glutPostRedisplay();
 
 	glutSwapBuffers();
 }
@@ -111,6 +126,23 @@ void compileShader()
 		printf("Error linking shader program: %s\n", errorLog);
 		exit(1);
 	}
+
+	//get the location of variable in shader script
+	gPositionLocation = glGetAttribLocation(shaderProgram, "Position");
+	//printf("gPositionLocation is %d\n", gPositionLocation);
+	if (gPositionLocation == -1)
+	{
+		printf("Error getting attri location of 'Postion'\n");
+		exit(1);
+	}
+
+	gScaleLocation = glGetUniformLocation(shaderProgram, "gScale");
+	if (gScaleLocation == -1)
+	{
+		printf("Error getting uniform location of 'gScale'\n");
+		exit(1);
+	}
+
 
 	glValidateProgram(shaderProgram);
 	glGetProgramiv(shaderProgram, GL_VALIDATE_STATUS, &succuss);
