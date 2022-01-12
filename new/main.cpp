@@ -1,7 +1,7 @@
 #include <glew.h>
 #include <freeglut.h>
 #include <stdio.h>
-#include "my_math.h"
+#include <glm/vec3.hpp>
 
 GLuint VBO;
 
@@ -20,10 +20,10 @@ void renderScene()
 
 void createBuffer()
 {
-	Vector3f vertices[3];
-	vertices[0] = Vector3f(-1, -1, 0);
-	vertices[1] = Vector3f(1, -1, 0);
-	vertices[2] = Vector3f(0, 1, 0);
+	glm::vec3 vertices[3];
+	vertices[0] = glm::vec3(-1, -1, 0);
+	vertices[1] = glm::vec3(1, -1, 0);
+	vertices[2] = glm::vec3(0, 1, 0);
 
 	glGenBuffers(1, &VBO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
