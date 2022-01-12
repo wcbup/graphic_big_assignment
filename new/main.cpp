@@ -2,6 +2,11 @@
 #include <freeglut.h>
 #include <stdio.h>
 #include <glm/vec3.hpp>
+#include <string>
+#include "my_utilis.h"
+
+using namespace std;
+using namespace glm;
 
 GLuint VBO;
 
@@ -31,6 +36,94 @@ void createBuffer()
 		GL_STATIC_DRAW);
 }
 
+void addShader(GLuint shaderProgram, const char* pShaderText, GLenum shaderType)
+{
+	GLuint shaderObj = glCreateShader(shaderType);
+
+	if (shaderObj == 0)
+	{
+		printf("Error creating shader type %d\n", shaderType);
+	}
+	
+	const GLchar* p[1];
+	p[0] = pShaderText;
+
+	GLint lengh;
+	lengh = (GLint)strlen(pShaderText);
+
+	glShaderSource(shaderObj, 1, p, &lengh);
+
+	glCompileShader(shaderObj);
+
+	GLint success;
+	glGetShaderiv(shaderObj, GL_COMPILE_STATUS, &success);
+
+	if (!success)
+	{
+		GLchar infoLog[1024];
+		glGetShaderInfoLog(shaderObj, 1024, NULL, infoLog);
+		printf("Error compling shader\n");
+		exit(1);
+	}
+
+	glAttachShader(shaderProgram, shaderObj);
+}
+
+const char* pVSFileName = "shader.vs";
+const char* pFSFileName = "shader.fs";
+
+void compileShader()
+{
+	GLuint shaderProgram = glCreateProgram();
+
+	if (shaderProgram == 0)
+	{
+		printf("Error creating shader program\n");
+		exit(1);
+	}
+
+	string vs, fs;
+
+	if (!readFile(pVSFileName, vs))
+	{
+		exit(1);
+	}
+	
+	addShader(shaderProgram, vs.c_str(), GL_VERTEX_SHADER);
+
+	if (!readFile(pFSFileName, fs))
+	{
+		exit(1);
+	}
+
+	addShader(shaderProgram, fs.c_str(), GL_FRAGMENT_SHADER);
+
+	GLint succuss = 0;
+	GLchar errorLog[1024] = { 0 };
+
+	glLinkProgram(shaderProgram);
+	
+	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &succuss);
+	if (succuss == 0)
+	{
+		glGetProgramInfoLog(shaderProgram, sizeof(errorLog),
+			NULL, errorLog);
+		printf("Error linking shader program: %s\n", errorLog);
+		exit(1);
+	}
+
+	glValidateProgram(shaderProgram);
+	glGetProgramiv(shaderProgram, GL_VALIDATE_STATUS, &succuss);
+	if (succuss == 0)
+	{
+		glGetProgramInfoLog(shaderProgram, sizeof(errorLog),
+			NULL, errorLog);
+		exit(1);
+	}
+
+	glUseProgram(shaderProgram);
+}
+
 int main(int argc, char** argv)
 {
 	glutInit(&argc, argv);
@@ -57,6 +150,8 @@ int main(int argc, char** argv)
 	glClearColor(red, green, blue, alpha);
 
 	createBuffer();
+
+	compileShader();
 
 	glutDisplayFunc(renderScene);
 
