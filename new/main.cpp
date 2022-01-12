@@ -12,7 +12,7 @@ void renderScene()
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-	glDrawArrays(GL_POINTS, 0, 1);
+	glDrawArrays(GL_TRIANGLES, 0, 3);
 	glDisableVertexAttribArray(0);
 
 	glutSwapBuffers();
@@ -20,7 +20,11 @@ void renderScene()
 
 void createBuffer()
 {
-	Vector3f vertices[1];
+	Vector3f vertices[3];
+	vertices[0] = Vector3f(-1, -1, 0);
+	vertices[1] = Vector3f(1, -1, 0);
+	vertices[2] = Vector3f(0, 1, 0);
+
 	glGenBuffers(1, &VBO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices,
