@@ -1,30 +1,30 @@
+#include <glew.h>
 #include <freeglut.h>
 #include <stdio.h>
+#include "my_math.h"
 
-void RenderScene()
+GLuint VBO;
+
+void renderScene()
 {
 	glClear(GL_COLOR_BUFFER_BIT);
-	static GLclampf r = 0;
-	static bool flag = 0;
-	if (flag)
-	{
-		r -= 1.0 / 256.0;
-	}
-	else
-	{
-		r += 1.0 / 256.0;
-	}
-	if (r >= 1)
-	{
-		flag = 1;
-	}
-	if (r <= 0)
-	{
-		flag = 0;
-	}
-	glClearColor(r, r, r, 1);
-	glutPostRedisplay();
+
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glDrawArrays(GL_POINTS, 0, 1);
+	glDisableVertexAttribArray(0);
+
 	glutSwapBuffers();
+}
+
+void createBuffer()
+{
+	Vector3f vertices[1];
+	glGenBuffers(1, &VBO);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices,
+		GL_STATIC_DRAW);
 }
 
 int main(int argc, char** argv)
@@ -41,11 +41,20 @@ int main(int argc, char** argv)
 	glutInitWindowPosition(x, y);
 	int win = glutCreateWindow("Tutorial 1");
 	printf("window id is %d\n", win);
+
+	GLenum res = glewInit();
+	if (res != GLEW_OK)
+	{
+		printf("Error: %s\n", glewGetErrorString(res));
+		return 1;
+	}
+
 	GLclampf red = 0, green = 0, blue = 0, alpha = 0;
 	glClearColor(red, green, blue, alpha);
 
+	createBuffer();
 
-	glutDisplayFunc(RenderScene);
+	glutDisplayFunc(renderScene);
 
 	glutMainLoop();
 
