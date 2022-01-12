@@ -5,10 +5,22 @@ void RenderScene()
 {
 	glClear(GL_COLOR_BUFFER_BIT);
 	static GLclampf r = 0;
-	r += 1.0 / 256.0;
+	static bool flag = 0;
+	if (flag)
+	{
+		r -= 1.0 / 256.0;
+	}
+	else
+	{
+		r += 1.0 / 256.0;
+	}
 	if (r >= 1)
 	{
-		r = 0;
+		flag = 1;
+	}
+	if (r <= 0)
+	{
+		flag = 0;
 	}
 	glClearColor(r, r, r, 1);
 	glutPostRedisplay();
