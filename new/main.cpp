@@ -4,6 +4,7 @@
 #include <glm/vec3.hpp>
 #include <glm/mat4x4.hpp>
 #include <string>
+#include <math.h>
 #include "my_utilis.h"
 
 using namespace std;
@@ -13,20 +14,21 @@ GLuint VBO;
 GLint gPositionLocation;
 GLuint gScaleLocation;
 GLuint gTranslationLocation;
+GLuint gRotationLocation;
 
 void renderScene()
 {
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	static float scale = 0;
+	static float angleInRadians = 0;
 	static float delta = 0.005f;
-	scale += delta;
-	if ((scale >= 1) || (scale <= -1))
+	angleInRadians += delta;
+	if ((angleInRadians >= 1.5708f) || (angleInRadians <= -1.5708f))
 	{
 		delta *= -1;
 	}
-	mat4 translation(1, 0, 0, scale*2,
-		0, 1, 0, scale,
+	mat4 translation(cosf(angleInRadians), -sinf(angleInRadians), 0, 0,
+		sinf(angleInRadians), cosf(angleInRadians), 0, 0,
 		0, 0, 1, 0,
 		0, 0, 0, 1);
 
@@ -149,10 +151,17 @@ void compileShader()
 	//	exit(1);
 	//}
 
-	gTranslationLocation = glGetUniformLocation(shaderProgram, "gTranslation");
+	//gTranslationLocation = glGetUniformLocation(shaderProgram, "gTranslation");
+	//if (gScaleLocation == -1)
+	//{
+	//	printf("Error getting uniform location of 'gTranslation'\n");
+	//	exit(1);
+	//}
+
+	gRotationLocation = glGetUniformLocation(shaderProgram, "gRotation");
 	if (gScaleLocation == -1)
 	{
-		printf("Error getting uniform location of 'gTranslation'\n");
+		printf("Error getting uniform location of 'gRotatioin'\n");
 		exit(1);
 	}
 
