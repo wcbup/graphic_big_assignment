@@ -15,6 +15,7 @@ GLint gPositionLocation;
 GLuint gScaleLocation;
 GLuint gTranslationLocation;
 GLuint gRotationLocation;
+GLuint gWorldLocation;
 
 void renderScene()
 {
@@ -23,17 +24,28 @@ void renderScene()
 	static float angleInRadians = 0;
 	static float delta = 0.005f;
 	angleInRadians += delta;
-	if ((angleInRadians >= 1.5708f) || (angleInRadians <= -1.5708f))
-	{
-		delta *= -1;
-	}
-	mat4 translation(cosf(angleInRadians), -sinf(angleInRadians), 0, 0,
+	//if ((angleInRadians >= 1.5708f) || (angleInRadians <= -1.5708f))
+	//{
+	//	delta *= -1;
+	//}
+	mat4 transplate(1, 0, 0, 1,
+		0, 1, 0, 0,
+		0, 0, 1, 0,
+		0, 0, 0, 1);
+	mat4 rotate(cosf(angleInRadians), -sinf(angleInRadians), 0, 0,
 		sinf(angleInRadians), cosf(angleInRadians), 0, 0,
 		0, 0, 1, 0,
 		0, 0, 0, 1);
+	mat4 scale(0.2, 0, 0, 0,
+		0, 0.2, 0, 0,
+		0, 0, 0.2, 0,
+		0, 0, 0, 1);
+	mat4 world = scale * transplate * rotate;
+	//mat4 world = scale * rotate * transplate;
+	//mat4 world = rotate * transplate * scale;
 
 	//bind the uniform variable
-	glUniformMatrix4fv(gTranslationLocation, 1, GL_TRUE, &translation[0][0]);
+	glUniformMatrix4fv(gTranslationLocation, 1, GL_TRUE, &world[0][0]);
 
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glEnableVertexAttribArray(gPositionLocation);
@@ -152,16 +164,23 @@ void compileShader()
 	//}
 
 	//gTranslationLocation = glGetUniformLocation(shaderProgram, "gTranslation");
-	//if (gScaleLocation == -1)
+	//if (gTranslationLocation = == -1)
 	//{
 	//	printf("Error getting uniform location of 'gTranslation'\n");
 	//	exit(1);
 	//}
 
-	gRotationLocation = glGetUniformLocation(shaderProgram, "gRotation");
-	if (gScaleLocation == -1)
+	//gRotationLocation = glGetUniformLocation(shaderProgram, "gRotation");
+	//if (gRotationLocation == -1)
+	//{
+	//	printf("Error getting uniform location of 'gRotatioin'\n");
+	//	exit(1);
+	//}
+
+	gWorldLocation = glGetUniformLocation(shaderProgram, "gWorld");
+	if (gWorldLocation == -1)
 	{
-		printf("Error getting uniform location of 'gRotatioin'\n");
+		printf("Error getting uniform location of 'gWorld'\n");
 		exit(1);
 	}
 
@@ -182,8 +201,8 @@ int main(int argc, char** argv)
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);
 
-	int width = 1280;
-	int height = 720;
+	int width = 1000;
+	int height = 1000;
 	glutInitWindowSize(width, height);
 
 	int x = 200;
