@@ -1,14 +1,12 @@
 #include <glew.h>
 #include <freeglut.h>
 #include <stdio.h>
-#include <glm/vec3.hpp>
-#include <glm/mat4x4.hpp>
 #include <string>
 #include <math.h>
+#include <iostream>
 #include "my_utilis.h"
 
 using namespace std;
-using namespace glm;
 
 GLuint VBO;
 GLuint IBO;
@@ -30,10 +28,10 @@ void renderScene()
 	//{
 	//	delta *= -1;
 	//}
-	mat4 transplate(1, 0, 0, 0,
-		0, 1, 0, 0,
-		0, 0, 1, 0,
-		0, 0, 0, 1);
+	mat4 transplate(1, 0, 0, 0.5,
+					0, 1, 0, 0,
+					0, 0, 1, 0,
+					0, 0, 0, 1);
 	mat4 rotate(cosf(angleInRadians), -sinf(angleInRadians), 0, 0,
 		sinf(angleInRadians), cosf(angleInRadians), 0, 0,
 		0, 0, 1, 0,
@@ -42,13 +40,12 @@ void renderScene()
 		0, 0.2, 0, 0,
 		0, 0, 0.2, 0,
 		0, 0, 0, 1);
-	//mat4 world = scale * transplate * rotate;
-	//mat4 world = scale * rotate * transplate;
+	mat4 world = transplate * rotate * scale;
 	//mat4 world = rotate * transplate * scale;
-	mat4 world = transplate;
+	//mat4 world = transplate;
 
 	//bind the uniform variable
-	glUniformMatrix4fv(gTranslationLocation, 1, GL_TRUE, &world[0][0]);
+	glUniformMatrix4fv(gTranslationLocation, 1, GL_TRUE, &world.m[0][0]);
 
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
