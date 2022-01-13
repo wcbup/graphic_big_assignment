@@ -6,6 +6,10 @@
 #include <iostream>
 #include "my_utilis.h"
 
+#define WINDOW_WIDTH  1280
+#define WINDOW_HEIGHT 720
+#define PI 3.14159265358979323846
+
 using namespace std;
 
 GLuint VBO;
@@ -28,21 +32,36 @@ void renderScene()
 	//{
 	//	delta *= -1;
 	//}
-	mat4 transplate(1, 0, 0, 0.5,
+
+	static float Scale = 0.0f;
+	Scale += 0.005f;
+	mat4 transplate(1, 0, 0, 0,
 					0, 1, 0, 0,
-					0, 0, 1, 0,
+					0, 0, 1, 3,
 					0, 0, 0, 1);
-	mat4 rotate(cosf(angleInRadians), -sinf(angleInRadians), 0, 0,
-		sinf(angleInRadians), cosf(angleInRadians), 0, 0,
-		0, 0, 1, 0,
-		0, 0, 0, 1);
+	mat4 rotate(cosf(Scale), 0.0f, -sinf(Scale), 0.0f,
+		0.0f, 1.0f, 0.0f, 0.0f,
+		sinf(Scale), 0.0f, cosf(Scale), 0.0f,
+		0.0f, 0.0f, 0.0f, 1.0f);
 	mat4 scale(0.2, 0, 0, 0,
 		0, 0.2, 0, 0,
 		0, 0, 0.2, 0,
 		0, 0, 0, 1);
-	mat4 world = transplate * rotate * scale;
+	mat4 world = transplate * rotate;
 	//mat4 world = rotate * transplate * scale;
 	//mat4 world = transplate;
+	float VFOV = 90.0f;
+	VFOV = VFOV * PI / 180.0f;
+	float tanHalfVFOV = tanf(VFOV / 2.0f);
+	float d = 1 / tanHalfVFOV;
+
+	float ar = (float)WINDOW_WIDTH / (float)WINDOW_HEIGHT;
+
+	mat4 projection(d, 0, 0, 0,
+		0, d, 0, 0,
+		0, 0, 1, 0,
+		0, 0, 1, 0);
+	world = projection * world;
 
 	//bind the uniform variable
 	glUniformMatrix4fv(gTranslationLocation, 1, GL_TRUE, &world.m[0][0]);
@@ -60,7 +79,7 @@ void renderScene()
 	glVertexAttribPointer(gColorLocation, 3, GL_FLOAT, GL_FALSE,
 		6*sizeof(float), (void *)(sizeof(float)));
 
-	glDrawElements(GL_TRIANGLES, 54, GL_UNSIGNED_INT, 0);
+	glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
 
 	glDisableVertexAttribArray(gPositionLocation);
 	glDisableVertexAttribArray(gColorLocation);
@@ -76,9 +95,9 @@ struct Vertex {
 
 	Vertex() {}
 
-	Vertex(float x, float y)
+	Vertex(float x, float y, float z)
 	{
-		pos = vec3(x, y, 0.0f);
+		pos = vec3(x, y, z);
 
 		float red = (float)rand() / (float)RAND_MAX;
 		float green = (float)rand() / (float)RAND_MAX;
@@ -89,32 +108,16 @@ struct Vertex {
 
 void createVertexBuffer()
 {
-	Vertex Vertices[19];
+	Vertex Vertices[8];
 
-	// Center
-	Vertices[0] = Vertex(0.0f, 0.0);
-
-	// Top row
-	Vertices[1] = Vertex(-1.0f, 1.0f);
-	Vertices[2] = Vertex(-0.75f, 1.0f);
-	Vertices[3] = Vertex(-0.50f, 1.0f);
-	Vertices[4] = Vertex(-0.25f, 1.0f);
-	Vertices[5] = Vertex(-0.0f, 1.0f);
-	Vertices[6] = Vertex(0.25f, 1.0f);
-	Vertices[7] = Vertex(0.50f, 1.0f);
-	Vertices[8] = Vertex(0.75f, 1.0f);
-	Vertices[9] = Vertex(1.0f, 1.0f);
-
-	// Bottom row
-	Vertices[10] = Vertex(-1.0f, -1.0f);
-	Vertices[11] = Vertex(-0.75f, -1.0f);
-	Vertices[12] = Vertex(-0.50f, -1.0f);
-	Vertices[13] = Vertex(-0.25f, -1.0f);
-	Vertices[14] = Vertex(-0.0f, -1.0f);
-	Vertices[15] = Vertex(0.25f, -1.0f);
-	Vertices[16] = Vertex(0.50f, -1.0f);
-	Vertices[17] = Vertex(0.75f, -1.0f);
-	Vertices[18] = Vertex(1.0f, -1.0f);
+	Vertices[0] = Vertex(0.5f, 0.5f, 0.5f);
+	Vertices[1] = Vertex(-0.5f, 0.5f, -0.5f);
+	Vertices[2] = Vertex(-0.5f, 0.5f, 0.5f);
+	Vertices[3] = Vertex(0.5f, -0.5f, -0.5f);
+	Vertices[4] = Vertex(-0.5f, -0.5f, -0.5f);
+	Vertices[5] = Vertex(0.5f, 0.5f, -0.5f);
+	Vertices[6] = Vertex(0.5f, -0.5f, 0.5f);
+	Vertices[7] = Vertex(-0.5f, -0.5f, 0.5f);
 
 	glGenBuffers(1, &VBO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
@@ -124,31 +127,20 @@ void createVertexBuffer()
 
 void createIndexBuffer()
 {
-	unsigned int Indices[] = { // Top triangles
-							   0, 2, 1,
-							   0, 3, 2,
-							   0, 4, 3,
-							   0, 5, 4,
-							   0, 6, 5,
-							   0, 7, 6,
-							   0, 8, 7,
-							   0, 9, 8,
-
-							   // Bottom triangles
-							   0, 10, 11,
-							   0, 11, 12,
-							   0, 12, 13,
-							   0, 13, 14,
-							   0, 14, 15,
-							   0, 15, 16,
-							   0, 16, 17,
-							   0, 17, 18,
-
-							   // Left triangle
-							   0, 1, 10,
-
-							   // Right triangle
-							   0, 18, 9 };
+	unsigned int Indices[] = {
+							  0, 1, 2,
+							  1, 3, 4,
+							  5, 6, 3,
+							  7, 3, 6,
+							  2, 4, 7,
+							  0, 7, 6,
+							  0, 5, 1,
+							  1, 5, 3,
+							  5, 0, 6,
+							  7, 4, 3,
+							  2, 1, 4,
+							  0, 2, 7
+	};
 
 	glGenBuffers(1, &IBO);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
@@ -295,13 +287,9 @@ int main(int argc, char** argv)
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);
 
-	int width = 1000;
-	int height = 1000;
-	glutInitWindowSize(width, height);
+	glutInitWindowSize(WINDOW_WIDTH, WINDOW_HEIGHT);
 
-	int x = 200;
-	int y = 100;
-	glutInitWindowPosition(x, y);
+	glutInitWindowPosition(100, 100);
 	int win = glutCreateWindow("Tutorial 1");
 	printf("window id is %d\n", win);
 
@@ -314,6 +302,10 @@ int main(int argc, char** argv)
 
 	GLclampf red = 0, green = 0, blue = 0, alpha = 0;
 	glClearColor(red, green, blue, alpha);
+
+	glEnable(GL_CULL_FACE);
+	glFrontFace(GL_CW);
+	glCullFace(GL_BACK);
 
 	createVertexBuffer();
 	createIndexBuffer();

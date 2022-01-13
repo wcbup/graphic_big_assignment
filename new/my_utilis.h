@@ -82,7 +82,9 @@ public:
 class vec3
 {
 public:
-	float x, y, z;
+	float x;
+	float y;
+	float z;
 
 	vec3()
 	{
