@@ -37,7 +37,7 @@ void renderScene()
 	Scale += 0.005f;
 	mat4 transplate(1, 0, 0, 0,
 					0, 1, 0, 0,
-					0, 0, 1, 3,
+					0, 0, 1, 2,
 					0, 0, 0, 1);
 	mat4 rotate(cosf(Scale), 0.0f, -sinf(Scale), 0.0f,
 		0.0f, 1.0f, 0.0f, 0.0f,
@@ -54,12 +54,19 @@ void renderScene()
 	VFOV = VFOV * PI / 180.0f;
 	float tanHalfVFOV = tanf(VFOV / 2.0f);
 	float d = 1 / tanHalfVFOV;
-
+	//keep the proportion right
 	float ar = (float)WINDOW_WIDTH / (float)WINDOW_HEIGHT;
 
-	mat4 projection(d, 0, 0, 0,
+	float nearZ = 1.0f;
+	float farZ = 10.0f;
+	//out of the range will be clipped
+	float zRange = nearZ - farZ;
+	float A = (-farZ - nearZ) / zRange;
+	float B = 2.0f * farZ * nearZ / zRange;
+
+	mat4 projection(d/ar, 0, 0, 0,
 		0, d, 0, 0,
-		0, 0, 1, 0,
+		0, 0, A, B,
 		0, 0, 1, 0);
 	world = projection * world;
 
