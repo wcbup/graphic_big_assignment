@@ -2,6 +2,7 @@
 #include <freeglut.h>
 #include <stdio.h>
 #include <glm/vec3.hpp>
+#include <glm/mat4x4.hpp>
 #include <string>
 #include "my_utilis.h"
 
@@ -11,21 +12,26 @@ using namespace glm;
 GLuint VBO;
 GLint gPositionLocation;
 GLuint gScaleLocation;
+GLuint gTranslationLocation;
 
 void renderScene()
 {
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	static float scale = 0;
-	static float delta = 0.001f;
+	static float delta = 0.005f;
 	scale += delta;
 	if ((scale >= 1) || (scale <= -1))
 	{
 		delta *= -1;
 	}
+	mat4 translation(1, 0, 0, scale*2,
+		0, 1, 0, scale,
+		0, 0, 1, 0,
+		0, 0, 0, 1);
 
 	//bind the uniform variable
-	glUniform1f(gScaleLocation, scale);
+	glUniformMatrix4fv(gTranslationLocation, 1, GL_TRUE, &translation[0][0]);
 
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glEnableVertexAttribArray(gPositionLocation);
@@ -136,13 +142,19 @@ void compileShader()
 		exit(1);
 	}
 
-	gScaleLocation = glGetUniformLocation(shaderProgram, "gScale");
+	//gScaleLocation = glGetUniformLocation(shaderProgram, "gScale");
+	//if (gScaleLocation == -1)
+	//{
+	//	printf("Error getting uniform location of 'gScale'\n");
+	//	exit(1);
+	//}
+
+	gTranslationLocation = glGetUniformLocation(shaderProgram, "gTranslation");
 	if (gScaleLocation == -1)
 	{
-		printf("Error getting uniform location of 'gScale'\n");
+		printf("Error getting uniform location of 'gTranslation'\n");
 		exit(1);
 	}
-
 
 	glValidateProgram(shaderProgram);
 	glGetProgramiv(shaderProgram, GL_VALIDATE_STATUS, &succuss);
