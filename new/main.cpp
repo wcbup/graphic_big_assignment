@@ -37,7 +37,7 @@ void renderScene()
 	Scale += 0.005f;
 	mat4 transplate(1, 0, 0, 0,
 					0, 1, 0, 0,
-					0, 0, 1, 2,
+					0, 0, 1, -2,
 					0, 0, 0, 1);
 	mat4 rotate(cosf(Scale), 0.0f, -sinf(Scale), 0.0f,
 		0.0f, 1.0f, 0.0f, 0.0f,
@@ -50,6 +50,16 @@ void renderScene()
 	mat4 world = transplate * rotate;
 	//mat4 world = rotate * transplate * scale;
 	//mat4 world = transplate;
+
+	vec3 cameraPos(0, -1, -5);
+	vec3 U(1, 0, 0);
+	vec3 V(0, 1, 0);
+	vec3 N(0, 0, 1);
+	mat4 camera( U.x, U.y, U.z, -cameraPos.x,
+					V.x, V.y, V.z, -cameraPos.y,
+					N.x, N.y, N.z, -cameraPos.z,
+					  0,   0,   0,			  1);
+
 	float VFOV = 90.0f;
 	VFOV = VFOV * PI / 180.0f;
 	float tanHalfVFOV = tanf(VFOV / 2.0f);
@@ -68,7 +78,7 @@ void renderScene()
 		0, d, 0, 0,
 		0, 0, A, B,
 		0, 0, 1, 0);
-	world = projection * world;
+	world = projection * camera * world;
 
 	//bind the uniform variable
 	glUniformMatrix4fv(gTranslationLocation, 1, GL_TRUE, &world.m[0][0]);
