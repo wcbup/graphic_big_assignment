@@ -28,28 +28,13 @@ void renderScene()
 	static float angleInRadians = 0;
 	static float delta = 0.005f;
 	angleInRadians += delta;
-	//if ((angleInRadians >= 1.5708f) || (angleInRadians <= -1.5708f))
-	//{
-	//	delta *= -1;
-	//}
 
-	static float Scale = 0.0f;
-	Scale += 0.005f;
-	mat4 transplate(1, 0, 0, 0,
-					0, 1, 0, 0,
-					0, 0, 1, 2,
-					0, 0, 0, 1);
-	mat4 rotate(cosf(Scale), 0.0f, -sinf(Scale), 0.0f,
-		0.0f, 1.0f, 0.0f, 0.0f,
-		sinf(Scale), 0.0f, cosf(Scale), 0.0f,
-		0.0f, 0.0f, 0.0f, 1.0f);
-	mat4 scale(0.2, 0, 0, 0,
-		0, 0.2, 0, 0,
-		0, 0, 0.2, 0,
-		0, 0, 0, 1);
-	mat4 world = transplate * rotate;
-	//mat4 world = rotate * transplate * scale;
-	//mat4 world = transplate;
+	//transform from local coordinate to world coordinate
+	worldTransform wf;
+	wf.scale(2);
+	wf.rotateY(angleInRadians);
+	wf.transplate(2, -1.5, 5);
+
 	float VFOV = 90.0f;
 	VFOV = VFOV * PI / 180.0f;
 	float tanHalfVFOV = tanf(VFOV / 2.0f);
@@ -68,7 +53,8 @@ void renderScene()
 		0, d, 0, 0,
 		0, 0, A, B,
 		0, 0, 1, 0);
-	world = projection * world;
+	mat4 world;
+	world = projection * wf.getMatrix();
 
 	//bind the uniform variable
 	glUniformMatrix4fv(gTranslationLocation, 1, GL_TRUE, &world.m[0][0]);

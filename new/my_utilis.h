@@ -3,6 +3,7 @@
 #include <string>
 #include <fstream>
 #include <stdio.h>
+#include <math.h>
 using namespace std;
 
 bool readFile(const char* pFileName, string& outFile)
@@ -62,7 +63,7 @@ public:
 		m[3][0] = a30; m[3][1] = a31; m[3][2] = a32; m[3][3] = a33;
 	}
 
-	mat4 operator*(const mat4& Right) const
+	mat4& operator*(const mat4& Right) const
 	{
 		mat4 Ret;
 		for (unsigned int i = 0; i < 4; i++) 
@@ -97,4 +98,63 @@ public:
 		y = _y;
 		z = _z;
 	}
+};
+
+//transform from local coordinate to world coordinate
+class worldTransform
+{
+public:
+	mat4& getMatrix()
+	{
+		return matrix;
+	}
+
+	void scale(float a)
+	{
+		matrix.m[0][0] *= a;
+		matrix.m[1][1] *= a;
+		matrix.m[2][2] *= a;
+	}
+
+	//transplate to (x, y, z)
+	void transplate(float x, float y, float z)
+	{
+		matrix.m[0][3] += x;
+		matrix.m[1][3] += y;
+		matrix.m[2][3] += z;
+	}
+
+	//rotate a radians around x-zxis
+	void rotateX(float a)
+	{
+		mat4 rotate(
+			1.0f, 0.0f, 0.0f, 0.0f,
+			0.0f, cosf(a), -sinf(a), 0.0f,
+			0.0f, sinf(a), cosf(a), 0.0f,
+			0.0f, 0.0f, 0.0f, 1.0f);
+		matrix = rotate * matrix;
+	}
+	//rotate a radians around y-zxis
+	void rotateY(float a)
+	{
+		mat4 rotate(
+			cosf(a), 0.0f, -sinf(a), 0.0f,
+			0.0f, 1.0f, 0.0f, 0.0f,
+			sinf(a), 0.0f, cosf(a), 0.0f,
+			0.0f, 0.0f, 0.0f, 1.0f);
+		matrix = rotate * matrix;
+	}
+	//rotate a radians around z-zxis
+	void rotateZ(float a)
+	{
+		mat4 rotate(
+			cosf(a), -sinf(a), 0.0f, 0.0f,
+			sinf(a), cosf(a), 0.0f, 0.0f,
+			0.0f, 0.0f, 1.0f, 0.0f,
+			0.0f, 0.0f, 0.0f, 1.0f);
+		matrix = rotate * matrix;
+	}
+private:
+	//init to be identity matrix
+	mat4 matrix;
 };
