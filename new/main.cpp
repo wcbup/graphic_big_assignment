@@ -8,7 +8,6 @@
 
 #define WINDOW_WIDTH  1280
 #define WINDOW_HEIGHT 720
-#define PI 3.14159265358979323846
 
 using namespace std;
 
@@ -16,10 +15,10 @@ GLuint VBO;
 GLuint IBO;
 GLint gPositionLocation;
 GLint gColorLocation;
-GLuint gScaleLocation;
-GLuint gTranslationLocation;
-GLuint gRotationLocation;
 GLuint gWorldLocation;
+
+camera myCamera;
+projection myProjection(90.0f, WINDOW_WIDTH, WINDOW_HEIGHT, 1, 100);
 
 void renderScene()
 {
@@ -30,18 +29,16 @@ void renderScene()
 	angleInRadians += delta;
 
 	//transform from local coordinate to world coordinate
-	worldTransform wf;
-	wf.scale(1);
-	wf.rotateY(angleInRadians);
-	wf.transplate(-1, 1, 5);
+	worldTransform myWorldTransform;
+	myWorldTransform.scale(1);
+	myWorldTransform.rotateY(angleInRadians);
+	myWorldTransform.transplate(-1, 1, 10);
 
-	projection pro(90.0f, WINDOW_WIDTH, WINDOW_HEIGHT, 1, 10);
 	mat4 world;
-
-	world = pro.getMatrix() * wf.getMatrix();
+	world = myProjection.getMatrix() * myCamera.getMatrix() * myWorldTransform.getMatrix();
 
 	//bind the uniform variable
-	glUniformMatrix4fv(gTranslationLocation, 1, GL_TRUE, &world.m[0][0]);
+	glUniformMatrix4fv(gWorldLocation, 1, GL_TRUE, &world.m[0][0]);
 
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
@@ -203,40 +200,17 @@ void compileShader()
 
 	//get the location of variable in shader script
 	gPositionLocation = glGetAttribLocation(shaderProgram, "Position");
-	//printf("gPositionLocation is %d\n", gPositionLocation);
 	if (gPositionLocation == -1)
 	{
 		printf("Error getting attri location of 'Postion'\n");
 		exit(1);
 	}
 	gColorLocation = glGetAttribLocation(shaderProgram, "inColor");
-	//printf("gPositionLocation is %d\n", gPositionLocation);
 	if (gColorLocation == -1)
 	{
 		printf("Error getting attri location of 'inColor'\n");
 		exit(1);
 	}
-
-	//gScaleLocation = glGetUniformLocation(shaderProgram, "gScale");
-	//if (gScaleLocation == -1)
-	//{
-	//	printf("Error getting uniform location of 'gScale'\n");
-	//	exit(1);
-	//}
-
-	//gTranslationLocation = glGetUniformLocation(shaderProgram, "gTranslation");
-	//if (gTranslationLocation = == -1)
-	//{
-	//	printf("Error getting uniform location of 'gTranslation'\n");
-	//	exit(1);
-	//}
-
-	//gRotationLocation = glGetUniformLocation(shaderProgram, "gRotation");
-	//if (gRotationLocation == -1)
-	//{
-	//	printf("Error getting uniform location of 'gRotatioin'\n");
-	//	exit(1);
-	//}
 
 	gWorldLocation = glGetUniformLocation(shaderProgram, "gWorld");
 	if (gWorldLocation == -1)
@@ -255,6 +229,23 @@ void compileShader()
 	}
 
 	glUseProgram(shaderProgram);
+}
+
+void keyboard(unsigned char key, int mouse_x, int mouse_y)
+{
+	myCamera.handleKeyBoard(key);
+}
+
+void specialKeyboard(int key, int mouse_x, int mouse_y)
+{
+	myCamera.handleKeyBoard(key);
+}
+
+void initGlut()
+{
+	glutDisplayFunc(renderScene);
+	glutKeyboardFunc(keyboard);
+	glutSpecialFunc(specialKeyboard);
 }
 
 int main(int argc, char** argv)
@@ -289,7 +280,7 @@ int main(int argc, char** argv)
 
 	compileShader();
 
-	glutDisplayFunc(renderScene);
+	initGlut();
 
 	glutMainLoop();
 

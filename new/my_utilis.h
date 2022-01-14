@@ -4,6 +4,7 @@
 #include <fstream>
 #include <stdio.h>
 #include <math.h>
+#include <freeglut.h>
 
 #define PI 3.14159265358979323846
 
@@ -67,7 +68,7 @@ public:
 		m[3][0] = a30; m[3][1] = a31; m[3][2] = a32; m[3][3] = a33;
 	}
 
-	mat4& operator*(const mat4& Right) const
+	mat4 operator*(const mat4& Right) const
 	{
 		mat4 Ret;
 		for (unsigned int i = 0; i < 4; i++) 
@@ -102,7 +103,60 @@ public:
 		y = _y;
 		z = _z;
 	}
+
+	//be aware that we are in the left hand coordinate!!
+	vec3 cross(const vec3& v)
+	{
+		float _x = y * v.z - z * v.y;
+		float _y = z * v.x - x * v.z;
+		float _z = x * v.y - y * v.x;
+		vec3 ret(_x, _y, _z);
+		return ret;
+	}
+
+	void normalize()
+	{
+		float length = sqrtf(x * x + y * y + z * z);
+		if (length == 0)
+		{
+			printf("normalize fail!\n");
+			exit(1);
+		}
+		x /= length;
+		y /= length;
+		z /= length;
+	}
+
+	vec3 operator+(const vec3& r)
+	{
+		vec3 ret(
+			x + r.x,
+			y + r.y,
+			z + r.z
+		);
+		return ret;
+	}
+
+	vec3 operator-(const vec3& r)
+	{
+		vec3 ret(
+			x - r.x,
+			y - r.y,
+			z - r.z
+		);
+		return ret;
+	}
 };
+
+vec3 operator*(const vec3& l, float r)
+{
+	vec3 ret(
+		l.x * r,
+		l.y * r,
+		l.z * r
+	);
+	return ret;
+}
 
 //transform from local coordinate to world coordinate
 class worldTransform
@@ -198,4 +252,116 @@ public:
 
 private:
 	mat4 matrix;
+};
+
+//generate the camera matrix
+class camera
+{
+public:
+	camera()
+	{
+		target.z = 1.0f;
+		head_up.y = 1.0f;
+	}
+
+	//set the position of the camera
+	void setPos(float x, float y, float z)
+	{
+		pos.x = x;
+		pos.y = y;
+		pos.z = z;
+	}
+
+	void handleKeyBoard(unsigned char key)
+	{
+		switch (key)
+		{
+		case 'w':
+		{
+			pos = pos + target * speed;
+			break;
+		}
+		case 's':
+		{
+			pos = pos - target * speed;
+			break;
+		}
+		case 'a':
+		{
+			vec3 left = target.cross(head_up);
+			left.normalize();
+			left = left * speed;
+			pos = pos + left;
+			break;
+		}
+		case 'd':
+		{
+			vec3 left = target.cross(head_up);
+			left.normalize();
+			left = left * speed;
+			pos = pos - left;
+			break;
+		}
+		case GLUT_KEY_UP:
+		{
+			pos = pos + head_up;
+			break;
+		}
+		case GLUT_KEY_DOWN:
+		{
+			pos = pos - head_up;
+			break;
+		}
+		case '+':
+		{
+			speed += 0.1f;
+			printf("speed up to %f\n", speed);
+			break;
+		}
+		case '-':
+		{
+			if (speed > 0.1f)
+			{
+				speed -= 0.1f;
+				printf("speed down to %f\n", speed);
+				break;
+			}
+		}
+		default:
+			break;
+		}
+	}
+
+	mat4 getMatrix()
+	{
+		//be aware that we are in the left hand coordinate!!!!
+		vec3 N = target;
+		N.normalize();
+		vec3 U;
+		U = head_up.cross(N);
+		U.normalize();
+		vec3 V = N.cross(U);
+
+		mat4 ret(
+			U.x, U.y, U.z, -pos.x,
+			V.x, V.y, V.z, -pos.y,
+			N.x, N.y, N.z, -pos.z,
+			0.0f, 0.0f, 0.0f, 1.0f
+		);
+
+		return ret;
+	}
+
+private:
+	//the position of the camera
+	vec3 pos;
+
+	//the target the camera looking at
+	vec3 target;
+
+	//the orientation the camera head up
+	vec3 head_up;
+
+	//the speed of the camera movitation
+	float speed = 0.2f;
 };
