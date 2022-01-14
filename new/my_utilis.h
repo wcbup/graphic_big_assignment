@@ -7,6 +7,8 @@
 #include <freeglut.h>
 
 #define PI 3.14159265358979323846
+#define ToRadian(x) (float)(((x) * PI / 180.0f))
+#define ToDegree(x) (float)(((x) * 180.0f / PI))
 
 using namespace std;
 
@@ -85,6 +87,7 @@ public:
 	}
 };
 
+
 class vec3
 {
 public:
@@ -157,6 +160,78 @@ vec3 operator*(const vec3& l, float r)
 	);
 	return ret;
 }
+
+//use for rotate the camera
+struct quaternion
+{
+	float x;
+	float y;
+	float z;
+	float w;
+	
+	quaternion(float angle, const vec3& v)
+	{
+		float halfAngleInRadions = ToRadian(angle / 2);
+		float sineHalfAngle = sinf(halfAngleInRadions);
+		float cosHalfAngle = cosf(halfAngleInRadions);
+
+		x = v.x * sineHalfAngle;
+		y = v.y * sineHalfAngle;
+		z = v.z * sineHalfAngle;
+		w = cosHalfAngle;
+	}
+
+	quaternion(float _x, float _y, float _z, float _w)
+	{
+		x = _x;
+		y = _y;
+		z = _z;
+		w = _w;
+	}
+
+	void normalize()
+	{
+		float length = sqrtf(x * x + y * y + z * z + w * w);
+
+		x /= length;
+		y /= length;
+		z /= length;
+		w /= length;
+	}
+
+	quaternion conjugate()
+	{
+		quaternion ret(-x, -y, -z, w);
+		return ret;
+	}
+};
+
+quaternion operator*(const quaternion& q, const vec3& v)
+{
+	float w = -(q.x * v.x) - (q.y * v.y) - (q.z * v.z);
+	float x = (q.w * v.x) + (q.y * v.z) - (q.z * v.y);
+	float y = (q.w * v.y) + (q.z * v.x) - (q.x * v.z);
+	float z = (q.w * v.z) + (q.x * v.y) - (q.y * v.x);
+
+	quaternion ret(x, y, z, w);
+
+	return ret;
+}
+
+
+quaternion operator*(const quaternion& l, const quaternion& r)
+{
+	float w = (l.w * r.w) - (l.x * r.x) - (l.y * r.y) - (l.z * r.z);
+	float x = (l.x * r.w) + (l.w * r.x) + (l.y * r.z) - (l.z * r.y);
+	float y = (l.y * r.w) + (l.w * r.y) + (l.z * r.x) - (l.x * r.z);
+	float z = (l.z * r.w) + (l.w * r.z) + (l.x * r.y) - (l.y * r.x);
+
+	quaternion ret(x, y, z, w);
+
+	return ret;
+}
+
+
 
 //transform from local coordinate to world coordinate
 class worldTransform
@@ -258,10 +333,28 @@ private:
 class camera
 {
 public:
-	camera()
+	camera(int window_width, int window_height)
 	{
+		windowWidth = window_width;
+		windowHeight = window_height;
 		target.z = 1.0f;
 		head_up.y = 1.0f;
+
+		init();
+	}
+	camera(int window_width, int window_height, const vec3& pos,
+		const vec3& target, const vec3& up)
+	{
+		windowWidth = window_width;
+		windowHeight = window_height;
+		this->pos = pos;
+		this->pos.normalize();
+		this->target = target;
+		this->target.normalize();
+		this->head_up = up;
+		this->head_up.normalize();
+
+		init();
 	}
 
 	//set the position of the camera
@@ -334,6 +427,13 @@ public:
 
 	mat4 getMatrix()
 	{
+		mat4 translate(
+			1, 0, 0, -pos.x,
+			0, 1, 0, -pos.y,
+			0, 0, 1, -pos.z,
+			0, 0, 0, 1
+		);
+
 		//be aware that we are in the left hand coordinate!!!!
 		vec3 N = target;
 		N.normalize();
@@ -342,26 +442,202 @@ public:
 		U.normalize();
 		vec3 V = N.cross(U);
 
-		mat4 ret(
+		mat4 transform(
 			U.x, U.y, U.z, -pos.x,
 			V.x, V.y, V.z, -pos.y,
 			N.x, N.y, N.z, -pos.z,
 			0.0f, 0.0f, 0.0f, 1.0f
 		);
 
-		return ret;
+		return transform * translate;
+	}
+
+	void onMouse(int x, int y)
+	{
+		int deltaX = x - mouse_x;
+		int deltaY = y - mouse_y;
+
+		mouse_x = x;
+		mouse_y = y;
+
+		angle_horizon += (float)deltaX / 20.0f;
+		angle_vertical += (float)deltaY / 20.0f;
+
+		if (deltaX == 0)
+		{
+			if (x <= MARGIN)
+			{
+				onLeftEdge = true;
+			}
+			else if (x >= (windowWidth - MARGIN))
+			{
+				onRightEdge = true;
+			}
+		}
+		else
+		{
+			onLeftEdge = false;
+			onRightEdge = false;
+		}
+
+		if (deltaY == 0)
+		{
+			if (y <= MARGIN)
+			{
+				onUpperEdge = true;
+			}
+			else if (y >= windowHeight - MARGIN)
+			{
+				onLowerEdge = true;
+			}
+		}
+		else
+		{
+			onUpperEdge = false;
+			onLowerEdge = false;
+		}
+
+		update();
+	}
+
+	//update angle if the mouse is at the edge
+	void updateAtEdge()
+	{
+		bool shouldUpdate = false;
+
+		if (onLeftEdge)
+		{
+			angle_horizon -= EDGE_SPEED;
+			shouldUpdate = true;
+		}
+		else if (onRightEdge)
+		{
+			angle_horizon += EDGE_SPEED;
+			shouldUpdate = true;
+		}
+		else if (onUpperEdge)
+		{
+			if (angle_vertical > -90.0f)
+			{
+				angle_vertical -= EDGE_SPEED;
+				shouldUpdate = true;
+			}
+		}
+		else if (onLowerEdge)
+		{
+			if (angle_vertical < 90.0f)
+			{
+				angle_vertical += EDGE_SPEED;
+				shouldUpdate = true;
+			}
+		}
+
+		if (shouldUpdate)
+		{
+			update();
+		}
 	}
 
 private:
 	//the position of the camera
 	vec3 pos;
-
 	//the target the camera looking at
 	vec3 target;
-
 	//the orientation the camera head up
 	vec3 head_up;
-
 	//the speed of the camera movitation
 	float speed = 0.2f;
+
+	int windowWidth;
+	int windowHeight;
+	//the angle the camera turn horizontally or vertically
+	float angle_horizon;
+	float angle_vertical;
+
+	//if the mouse is on the edge
+	bool onUpperEdge;
+	bool onLowerEdge;
+	bool onLeftEdge;
+	bool onRightEdge;
+
+	//the position of the mouse
+	int mouse_x;
+	int mouse_y;
+
+	//the margin trigger the mouse to move
+	int MARGIN = 80;
+	//the speed of the camera rotate when the mouse is at edge
+	int EDGE_SPEED = 1.0f;
+
+	void init()
+	{
+		//set the rotate degree according to the target
+		vec3 horizontal_target(target.x, 0, target.z);
+		horizontal_target.normalize();
+		float angle = ToDegree(asinf(abs(horizontal_target.z)));
+		if (horizontal_target.z >= 0.0f)
+		{
+			if (horizontal_target.x >= 0.0f)
+			{
+				angle_horizon = 360 - angle;
+			}
+			else
+			{
+				angle_horizon = 180 + angle;
+			}
+		}
+		else
+		{
+			if (horizontal_target.x >= 0)
+			{
+				angle_horizon = angle;
+			}
+			else
+			{
+				angle_horizon = 180.0f - angle;
+			}
+		}
+
+		angle_vertical = -ToDegree(asinf(target.y));
+
+		onUpperEdge = false;
+		onLowerEdge = false;
+		onLeftEdge = false;
+		onRightEdge = false;
+		mouse_x = windowWidth / 2;
+		mouse_y = windowHeight / 2;
+	}
+
+	//roate the view using the quaternion
+	void rotateWithQuaternion(vec3& view, float angle, const vec3& axis)
+	{
+		quaternion rotationQ(angle, axis);
+		quaternion conjugateQ = rotationQ.conjugate();
+		quaternion result = rotationQ * view * conjugateQ;
+
+		view.x = result.x;
+		view.y = result.y;
+		view.z = result.z;
+	}
+
+	void update()
+	{
+		vec3 yAxis(0, 1, 0);
+
+		//rotate horizontally
+		vec3 view(1, 0, 0);
+		rotateWithQuaternion(view, angle_horizon, yAxis);
+		view.normalize();
+
+		//rotate vertically
+		vec3 U = yAxis.cross(view);
+		U.normalize();
+		rotateWithQuaternion(view, angle_vertical, U);
+
+		target = view;
+		target.normalize();
+
+		head_up = target.cross(U);
+		head_up.normalize();
+	}
 };

@@ -17,12 +17,14 @@ GLint gPositionLocation;
 GLint gColorLocation;
 GLuint gWorldLocation;
 
-camera myCamera;
+camera myCamera(WINDOW_WIDTH, WINDOW_HEIGHT);
 projection myProjection(90.0f, WINDOW_WIDTH, WINDOW_HEIGHT, 1, 100);
 
 void renderScene()
 {
 	glClear(GL_COLOR_BUFFER_BIT);
+
+	myCamera.updateAtEdge();
 
 	static float angleInRadians = 0;
 	static float delta = 0.005f;
@@ -241,11 +243,17 @@ void specialKeyboard(int key, int mouse_x, int mouse_y)
 	myCamera.handleKeyBoard(key);
 }
 
+void passiveMouse(int x, int y)
+{
+	myCamera.onMouse(x, y);
+}
+
 void initGlut()
 {
 	glutDisplayFunc(renderScene);
 	glutKeyboardFunc(keyboard);
 	glutSpecialFunc(specialKeyboard);
+	glutPassiveMotionFunc(passiveMouse);
 }
 
 int main(int argc, char** argv)
@@ -257,7 +265,7 @@ int main(int argc, char** argv)
 
 	glutInitWindowSize(WINDOW_WIDTH, WINDOW_HEIGHT);
 
-	glutInitWindowPosition(100, 100);
+	glutInitWindowPosition(0, 0);
 	int win = glutCreateWindow("Tutorial 1");
 	printf("window id is %d\n", win);
 
