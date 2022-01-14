@@ -4,6 +4,9 @@
 #include <fstream>
 #include <stdio.h>
 #include <math.h>
+
+#define PI 3.14159265358979323846
+
 using namespace std;
 
 bool readFile(const char* pFileName, string& outFile)
@@ -35,6 +38,7 @@ class mat4
 {
 public:
 	float m[4][4];
+	//init to be identity matrix
 	mat4()
 	{
 		for (int i = 0; i < 4; i++)
@@ -156,5 +160,42 @@ public:
 	}
 private:
 	//init to be identity matrix
+	mat4 matrix;
+};
+
+//generate the projection matrix
+class projection
+{
+public:
+	mat4& getMatrix()
+	{
+		return matrix;
+	}
+
+	//FOV: the vertical angle of field of the view, for example, 90 degree
+	//width: the width of window, same as height
+	//zNear: the closet z the camera can see
+	//zFar: the farest z the camera can see
+	projection(float FOV, float width, float height, float zNear,
+		float zFar)
+	{
+		FOV = FOV * PI / 180.0f;
+		float tanHalfFOV = tanf(FOV / 2.0f);
+		float d = 1.0f / tanHalfFOV;
+		//the ratio between the width and the height of the rectangular area which will be the target of projection
+		float aspect_radio = width / height;
+		float zRange = zNear - zFar;
+		float A = (-zFar - zNear) / zRange;
+		float B = 2.0f * zFar * zNear / zRange;
+
+		matrix = mat4(
+			d / aspect_radio, 0, 0, 0,
+			0, d, 0, 0,
+			0, 0, A, B,
+			0, 0, 1, 0
+		);
+	}
+
+private:
 	mat4 matrix;
 };

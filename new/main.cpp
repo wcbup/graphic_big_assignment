@@ -31,30 +31,14 @@ void renderScene()
 
 	//transform from local coordinate to world coordinate
 	worldTransform wf;
-	wf.scale(2);
+	wf.scale(1);
 	wf.rotateY(angleInRadians);
-	wf.transplate(2, -1.5, 5);
+	wf.transplate(-1, 1, 5);
 
-	float VFOV = 90.0f;
-	VFOV = VFOV * PI / 180.0f;
-	float tanHalfVFOV = tanf(VFOV / 2.0f);
-	float d = 1 / tanHalfVFOV;
-	//keep the proportion right
-	float ar = (float)WINDOW_WIDTH / (float)WINDOW_HEIGHT;
-
-	float nearZ = 1.0f;
-	float farZ = 10.0f;
-	//out of the range will be clipped
-	float zRange = nearZ - farZ;
-	float A = (-farZ - nearZ) / zRange;
-	float B = 2.0f * farZ * nearZ / zRange;
-
-	mat4 projection(d/ar, 0, 0, 0,
-		0, d, 0, 0,
-		0, 0, A, B,
-		0, 0, 1, 0);
+	projection pro(90.0f, WINDOW_WIDTH, WINDOW_HEIGHT, 1, 10);
 	mat4 world;
-	world = projection * wf.getMatrix();
+
+	world = pro.getMatrix() * wf.getMatrix();
 
 	//bind the uniform variable
 	glUniformMatrix4fv(gTranslationLocation, 1, GL_TRUE, &world.m[0][0]);
