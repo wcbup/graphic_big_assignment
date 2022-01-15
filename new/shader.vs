@@ -1,14 +1,14 @@
-#version 330 core
+#version 330 
 
 in vec3 Position;
-in vec3 inColor;
+in vec2 TexCoord;
 
 uniform mat4 gWorld;
 
-out vec4 Color;
+out vec2 TexCoord0;
 
 void main()
 {
 	gl_Position = gWorld * vec4(Position, 1.0);
-	Color = vec4(inColor, 1);
+	TexCoord0 = TexCoord;
 }

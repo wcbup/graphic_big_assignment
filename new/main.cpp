@@ -14,11 +14,28 @@ using namespace std;
 GLuint VBO;
 GLuint IBO;
 GLint gPositionLocation;
-GLint gColorLocation;
+GLint gTexCoordLocation;
 GLuint gWorldLocation;
+GLuint gSamplerLocation;
 
 camera myCamera(WINDOW_WIDTH, WINDOW_HEIGHT);
 projection myProjection(60.0f, WINDOW_WIDTH, WINDOW_HEIGHT, 1, 100);
+
+texture* pTexture = nullptr;
+
+struct Vertex {
+	vec3 pos;
+	vec2 tex;
+
+	Vertex() {}
+
+	Vertex(const vec3& _pos, const vec2& _tex)
+	{
+		pos = _pos;
+
+		tex = _tex;
+	}
+};
 
 void renderScene()
 {
@@ -45,55 +62,46 @@ void renderScene()
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
 
+	pTexture->bind(GL_TEXTURE0);
+	glUniform1i(gSamplerLocation, 0);
+
 	//position
 	glEnableVertexAttribArray(gPositionLocation);
 	glVertexAttribPointer(gPositionLocation, 3, GL_FLOAT, GL_FALSE,
-		6*sizeof(float), 0);
+		sizeof(Vertex), 0);
 
-	//color
-	glEnableVertexAttribArray(gColorLocation);
-	glVertexAttribPointer(gColorLocation, 3, GL_FLOAT, GL_FALSE,
-		6*sizeof(float), (void *)(sizeof(float)));
+	//tex coordinat
+	glEnableVertexAttribArray(gTexCoordLocation);
+	glVertexAttribPointer(gTexCoordLocation, 2, GL_FLOAT, GL_FALSE,
+		sizeof(Vertex), (void*)(3 * sizeof(float)));
 
 	glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
 
 	glDisableVertexAttribArray(gPositionLocation);
-	glDisableVertexAttribArray(gColorLocation);
+	glDisableVertexAttribArray(gSamplerLocation);
 
 	glutPostRedisplay();
 
 	glutSwapBuffers();
 }
 
-struct Vertex {
-	vec3 pos;
-	vec3 color;
-
-	Vertex() {}
-
-	Vertex(float x, float y, float z)
-	{
-		pos = vec3(x, y, z);
-
-		float red = (float)rand() / (float)RAND_MAX;
-		float green = (float)rand() / (float)RAND_MAX;
-		float blue = (float)rand() / (float)RAND_MAX;
-		color = vec3(red, green, blue);
-	}
-};
-
 void createVertexBuffer()
 {
 	Vertex Vertices[8];
 
-	Vertices[0] = Vertex(0.5f, 0.5f, 0.5f);
-	Vertices[1] = Vertex(-0.5f, 0.5f, -0.5f);
-	Vertices[2] = Vertex(-0.5f, 0.5f, 0.5f);
-	Vertices[3] = Vertex(0.5f, -0.5f, -0.5f);
-	Vertices[4] = Vertex(-0.5f, -0.5f, -0.5f);
-	Vertices[5] = Vertex(0.5f, 0.5f, -0.5f);
-	Vertices[6] = Vertex(0.5f, -0.5f, 0.5f);
-	Vertices[7] = Vertex(-0.5f, -0.5f, 0.5f);
+	vec2 t00 = vec2(0.0f, 0.0f);  // Bottom left
+	vec2 t01 = vec2(0.0f, 1.0f);  // Top left
+	vec2 t10 = vec2(1.0f, 0.0f);  // Bottom right
+	vec2 t11 = vec2(1.0f, 1.0f);  // Top right
+
+	Vertices[0] = Vertex(vec3(0.5f, 0.5f, 0.5f), t00);
+	Vertices[1] = Vertex(vec3(-0.5f, 0.5f, -0.5f), t01);
+	Vertices[2] = Vertex(vec3(-0.5f, 0.5f, 0.5f), t10);
+	Vertices[3] = Vertex(vec3(0.5f, -0.5f, -0.5f), t11);
+	Vertices[4] = Vertex(vec3(-0.5f, -0.5f, -0.5f), t00);
+	Vertices[5] = Vertex(vec3(0.5f, 0.5f, -0.5f), t10);
+	Vertices[6] = Vertex(vec3(0.5f, -0.5f, 0.5f), t01);
+	Vertices[7] = Vertex(vec3(-0.5f, -0.5f, 0.5f), t11);
 
 	glGenBuffers(1, &VBO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
@@ -207,10 +215,10 @@ void compileShader()
 		printf("Error getting attri location of 'Postion'\n");
 		exit(1);
 	}
-	gColorLocation = glGetAttribLocation(shaderProgram, "inColor");
-	if (gColorLocation == -1)
+	gTexCoordLocation = glGetAttribLocation(shaderProgram, "TexCoord");
+	if (gTexCoordLocation == -1)
 	{
-		printf("Error getting attri location of 'inColor'\n");
+		printf("Error getting attri location of 'TexCoord'\n");
 		exit(1);
 	}
 
@@ -218,6 +226,13 @@ void compileShader()
 	if (gWorldLocation == -1)
 	{
 		printf("Error getting uniform location of 'gWorld'\n");
+		exit(1);
+	}
+
+	gSamplerLocation = glGetUniformLocation(shaderProgram, "gSampler");
+	if (gSamplerLocation == -1)
+	{
+		printf("Error getting uniform location of 'gSampler'\n");
 		exit(1);
 	}
 
@@ -287,6 +302,9 @@ int main(int argc, char** argv)
 	createIndexBuffer();
 
 	compileShader();
+
+	pTexture = new texture("../res/bark.jpg");
+	pTexture->load();
 
 	initGlut();
 

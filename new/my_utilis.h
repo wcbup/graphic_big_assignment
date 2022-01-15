@@ -6,6 +6,10 @@
 #include <math.h>
 #include <freeglut.h>
 
+#define STB_IMAGE_IMPLEMENTATION
+#define STBI_FAILURE_USERMSG
+#include <stb_image.h>
+
 #define PI 3.14159265358979323846
 #define ToRadian(x) (float)(((x) * PI / 180.0f))
 #define ToDegree(x) (float)(((x) * 180.0f / PI))
@@ -160,6 +164,22 @@ vec3 operator*(const vec3& l, float r)
 	);
 	return ret;
 }
+
+struct vec2
+{
+	float x;
+	float y;
+
+	vec2()
+	{
+		x = y = 0;
+	}
+	vec2(float _x, float _y)
+	{
+		x = _x;
+		y = _y;
+	}
+};
 
 //use for rotate the camera
 struct quaternion
@@ -647,4 +667,67 @@ private:
 		head_up = target.cross(U);
 		head_up.normalize();
 	}
+};
+
+class texture
+{
+public:
+	texture(const string& _fileName)
+	{ 
+		fileName = _fileName;
+	}
+
+	void load()
+	{
+		stbi_set_flip_vertically_on_load(1);
+		int width = 0, height = 0, bit_per_pixel = 0;
+		unsigned char* image_data = stbi_load(fileName.c_str(),
+			&width, &height, &bit_per_pixel, 0);
+		if (!image_data)
+		{
+			printf("can't load texture fromm '%s': '%s'\n",
+				fileName.c_str(), stbi_failure_reason());
+			exit(1);
+		}
+
+		glGenTextures(1, &textureObj);
+		glBindTexture(GL_TEXTURE_2D, textureObj);
+		switch (bit_per_pixel) {
+		case 1:
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, image_data);
+			break;
+
+		case 3:
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image_data);
+			break;
+
+		case 4:
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image_data);
+			break;
+
+		default:
+			printf("didn't support texture of bit per pixel: %d\n",
+				bit_per_pixel);
+			exit(1);
+		}
+
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+		//unbind the texture
+		glBindTexture(GL_TEXTURE_2D, 0);
+
+		stbi_image_free(image_data);
+	}
+
+	void bind(GLenum textureUnit)
+	{
+		glActiveTexture(textureUnit);
+		glBindTexture(GL_TEXTURE_2D, textureObj);
+	}
+private:
+	string fileName;
+	GLuint textureObj;
 };
