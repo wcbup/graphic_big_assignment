@@ -18,7 +18,7 @@ GLint gColorLocation;
 GLuint gWorldLocation;
 
 camera myCamera(WINDOW_WIDTH, WINDOW_HEIGHT);
-projection myProjection(90.0f, WINDOW_WIDTH, WINDOW_HEIGHT, 1, 100);
+projection myProjection(60.0f, WINDOW_WIDTH, WINDOW_HEIGHT, 1, 100);
 
 void renderScene()
 {

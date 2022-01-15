@@ -371,12 +371,17 @@ public:
 		{
 		case 'w':
 		{
-			pos = pos + target * speed;
+			//only move horizontally
+			vec3 tmp = target;
+			tmp.y = 0;
+			pos = pos + tmp * speed;
 			break;
 		}
 		case 's':
 		{
-			pos = pos - target * speed;
+			vec3 tmp = target;
+			tmp.y = 0;
+			pos = pos - tmp * speed;
 			break;
 		}
 		case 'a':
@@ -384,6 +389,7 @@ public:
 			vec3 left = target.cross(head_up);
 			left.normalize();
 			left = left * speed;
+			left.y = 0;
 			pos = pos + left;
 			break;
 		}
@@ -392,6 +398,7 @@ public:
 			vec3 left = target.cross(head_up);
 			left.normalize();
 			left = left * speed;
+			left.y = 0;
 			pos = pos - left;
 			break;
 		}
