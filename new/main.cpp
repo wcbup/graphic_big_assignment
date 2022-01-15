@@ -11,15 +11,21 @@
 
 using namespace std;
 
-GLuint VBO;
-GLuint IBO;
 GLint gPositionLocation;
 GLint gTexCoordLocation;
 GLuint gWorldLocation;
 GLuint gSamplerLocation;
 
+GLuint cubeVAO;
+GLuint cubeVBO;
+GLuint cubeIBO;
+
+GLuint pyramidVAO;
+GLuint pyramidVBO;
+GLuint pyramidIBO;
+
 camera myCamera(WINDOW_WIDTH, WINDOW_HEIGHT);
-projection myProjection(60.0f, WINDOW_WIDTH, WINDOW_HEIGHT, 1, 100);
+projection myProjection(45.0f, WINDOW_WIDTH, WINDOW_HEIGHT, 1, 100);
 
 texture* pTexture = nullptr;
 
@@ -51,42 +57,34 @@ void renderScene()
 	worldTransform myWorldTransform;
 	myWorldTransform.scale(1);
 	myWorldTransform.rotateY(angleInRadians);
-	myWorldTransform.transplate(-1, 1, 10);
+	myWorldTransform.transplate(-1, 0, 5);
 
 	mat4 world;
 	world = myProjection.getMatrix() * myCamera.getMatrix() * myWorldTransform.getMatrix();
-
 	//bind the uniform variable
 	glUniformMatrix4fv(gWorldLocation, 1, GL_TRUE, &world.m[0][0]);
 
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
-
-	pTexture->bind(GL_TEXTURE0);
-	glUniform1i(gSamplerLocation, 0);
-
-	//position
-	glEnableVertexAttribArray(gPositionLocation);
-	glVertexAttribPointer(gPositionLocation, 3, GL_FLOAT, GL_FALSE,
-		sizeof(Vertex), 0);
-
-	//tex coordinat
-	glEnableVertexAttribArray(gTexCoordLocation);
-	glVertexAttribPointer(gTexCoordLocation, 2, GL_FLOAT, GL_FALSE,
-		sizeof(Vertex), (void*)(3 * sizeof(float)));
-
-	glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
-
-	glDisableVertexAttribArray(gPositionLocation);
-	glDisableVertexAttribArray(gSamplerLocation);
+	GLint currentVAO;
+	glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &currentVAO);
+	if (currentVAO == cubeVAO)
+	{
+		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+	}
+	else
+	{
+		glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_INT, 0);
+	}
 
 	glutPostRedisplay();
 
 	glutSwapBuffers();
 }
 
-void createVertexBuffer()
+void createCubeVAO()
 {
+	glGenVertexArrays(1, &cubeVAO);
+	glBindVertexArray(cubeVAO);
+
 	Vertex Vertices[8];
 
 	vec2 t00 = vec2(0.0f, 0.0f);  // Bottom left
@@ -103,14 +101,18 @@ void createVertexBuffer()
 	Vertices[6] = Vertex(vec3(0.5f, -0.5f, 0.5f), t01);
 	Vertices[7] = Vertex(vec3(-0.5f, -0.5f, 0.5f), t11);
 
-	glGenBuffers(1, &VBO);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(Vertices), Vertices,
-		GL_STATIC_DRAW);
-}
+	glGenBuffers(1, &cubeVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(Vertices), Vertices, GL_STATIC_DRAW);
 
-void createIndexBuffer()
-{
+	// position
+	glEnableVertexAttribArray(gPositionLocation);
+	glVertexAttribPointer(gPositionLocation, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), 0);
+
+	// tex coords
+	glEnableVertexAttribArray(gTexCoordLocation);
+	glVertexAttribPointer(gTexCoordLocation, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(3 * sizeof(float)));
+
 	unsigned int Indices[] = {
 							  0, 1, 2,
 							  1, 3, 4,
@@ -126,10 +128,63 @@ void createIndexBuffer()
 							  0, 2, 7
 	};
 
-	glGenBuffers(1, &IBO);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(Indices),
-		Indices, GL_STATIC_DRAW);
+	glGenBuffers(1, &cubeIBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, cubeIBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(Indices), Indices, GL_STATIC_DRAW);
+
+	//unbind the vertex arry
+	glBindVertexArray(0);
+	glDisableVertexAttribArray(gPositionLocation);
+	glDisableVertexAttribArray(gTexCoordLocation);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+}
+
+void createPyramidVAO()
+{
+	glGenVertexArrays(1, &pyramidVAO);
+	glBindVertexArray(pyramidVAO);
+
+	vec2 t00 = vec2(0.0f, 0.0f);
+	vec2 t050 = vec2(0.5f, 0.0f);
+	vec2 t10 = vec2(1.0f, 0.0f);
+	vec2 t051 = vec2(0.5f, 1.0f);
+
+	Vertex Vertices[4] = { Vertex(vec3(-1.0f, -1.0f, 0.5773f), t00),
+						   Vertex(vec3(0.0f, -1.0f, -1.15475f), t050),
+						   Vertex(vec3(1.0f, -1.0f, 0.5773f), t10),
+						   Vertex(vec3(0.0f, 1.0f, 0.0f), t051) };
+
+	glGenBuffers(1, &pyramidVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, pyramidVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(Vertices),
+		Vertices, GL_STATIC_DRAW);
+
+	//position
+	glEnableVertexAttribArray(gPositionLocation);
+	glVertexAttribPointer(gPositionLocation, 3, GL_FLOAT,
+		GL_FALSE, sizeof(Vertex), 0);
+	
+	//tex coords
+	glEnableVertexAttribArray(gTexCoordLocation);
+	glVertexAttribPointer(gTexCoordLocation, 2, GL_FLOAT,
+		GL_FALSE, sizeof(Vertex), (void*)(3 * sizeof(float)));
+
+	unsigned int Indices[] = { 0, 3, 1,
+							   1, 3, 2,
+							   2, 3, 0,
+							   0, 1, 2 };
+
+	glGenBuffers(1, &pyramidIBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, pyramidIBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(Indices), Indices, GL_STATIC_DRAW);
+
+	//unbind the vertex array object
+	glBindVertexArray(0);
+	glDisableVertexAttribArray(gPositionLocation);
+	glDisableVertexAttribArray(gTexCoordLocation);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
 void addShader(GLuint shaderProgram, const char* pShaderText, GLenum shaderType)
@@ -250,6 +305,14 @@ void compileShader()
 
 void keyboard(unsigned char key, int mouse_x, int mouse_y)
 {
+	if (key == '1')
+	{
+		glBindVertexArray(cubeVAO);
+	}
+	else if (key == '2')
+	{
+		glBindVertexArray(pyramidVAO);
+	}
 	myCamera.handleKeyBoard(key);
 }
 
@@ -273,8 +336,6 @@ void initGlut()
 
 int main(int argc, char** argv)
 {
-	srand(GetCurrentProcessId());
-
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);
 
@@ -298,13 +359,17 @@ int main(int argc, char** argv)
 	glFrontFace(GL_CW);
 	glCullFace(GL_BACK);
 
-	createVertexBuffer();
-	createIndexBuffer();
-
 	compileShader();
 
-	pTexture = new texture("../res/bark.jpg");
-	pTexture->load();
+	createCubeVAO();
+	createPyramidVAO();
+	glBindVertexArray(cubeVAO);
+
+	pTexture = new texture("../res/bricks.jpg");
+	pTexture->load();	
+	pTexture->bind(GL_TEXTURE0);
+	glUniform1i(gSamplerLocation, 0);
+
 
 	initGlut();
 
