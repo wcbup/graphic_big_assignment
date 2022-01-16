@@ -20,7 +20,7 @@ camera myCamera(WINDOW_WIDTH, WINDOW_HEIGHT);
 projection myProjection(45.0f, WINDOW_WIDTH, WINDOW_HEIGHT, 1, 100);
 
 texture* pTexture = nullptr;
-basicMesh* myMesh = NULL;
+modelLoader* myMesh = NULL;
 
 void renderScene()
 {
@@ -34,7 +34,7 @@ void renderScene()
 
 	//transform from local coordinate to world coordinate
 	worldTransform myWorldTransform;
-	myWorldTransform.scale(0.1);
+	myWorldTransform.scale(0.05);
 	myWorldTransform.rotateY(angleInRadians);
 	myWorldTransform.transplate(-1, 0, 25);
 
@@ -209,16 +209,17 @@ int main(int argc, char** argv)
 	GLclampf red = 0, green = 0, blue = 0, alpha = 0;
 	glClearColor(red, green, blue, alpha);
 
+	//remember to enable all below
 	glEnable(GL_CULL_FACE);
 	glFrontFace(GL_CW);
 	glCullFace(GL_BACK);
-
 	glEnable(GL_DEPTH_TEST);
 
 	compileShader();
 
-	myMesh = new basicMesh(gPositionLocation, gTexCoordLocation);
-	myMesh->loadMesh("../res/spider/spider.obj");
+	//pass in the uniform location in the shader
+	myMesh = new modelLoader(gPositionLocation, gTexCoordLocation, gSamplerLocation);
+	myMesh->loadMesh("../res/formula 1/Formula 1 mesh.obj");
 
 	initGlut();
 

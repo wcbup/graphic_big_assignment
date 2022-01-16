@@ -268,6 +268,7 @@ public:
 		return matrix;
 	}
 
+	//resize
 	void scale(float a)
 	{
 		matrix.m[0][0] *= a;
@@ -740,15 +741,16 @@ private:
 
 //for loading the obj model and render
 //support texture
-class basicMesh
+class modelLoader
 {
 public:
-	basicMesh(GLint _postionLocation, GLint _texCoordLocation)
+	modelLoader(GLint _postionLocation, GLint _texCoordLocation, GLint _samplerLocation)
 	{
 		positionLocation = _postionLocation;
 		texCoordLocation = _texCoordLocation;
+		samplerLocation = _samplerLocation;
 	}
-	~basicMesh()
+	~modelLoader()
 	{
 		clear();
 	}
@@ -801,6 +803,7 @@ public:
 			if (textures[materialIndex] != NULL)
 			{
 				textures[materialIndex]->bind(GL_TEXTURE0);
+				glUniform1i(samplerLocation, 0);
 			}
 
 			glDrawElementsBaseVertex(GL_TRIANGLES,
@@ -1058,4 +1061,5 @@ private:
 	//the uniform location in shader
 	GLint positionLocation;
 	GLint texCoordLocation;
+	GLint samplerLocation;
 };
