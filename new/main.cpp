@@ -12,7 +12,7 @@
 using namespace std;
 
 camera myCamera(WINDOW_WIDTH, WINDOW_HEIGHT);
-projection myProjection(45.0f, WINDOW_WIDTH, WINDOW_HEIGHT, 1, 100);
+projection myProjection(45.0f, WINDOW_WIDTH, WINDOW_HEIGHT, 1, 1000);
 
 modelLoader* myMesh = NULL;
 shader* myShader = NULL;
