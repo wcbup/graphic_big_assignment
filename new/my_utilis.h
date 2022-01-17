@@ -739,16 +739,26 @@ private:
 	GLuint textureObj;
 };
 
+class material
+{
+public:
+	vec3 ambientColor = vec3(0.0f, 0.0f, 0.0f);
+
+	texture* pDiffuse = NULL; //the base texture
+};
+
 //for loading the obj model and render
 //support texture
 class modelLoader
 {
 public:
-	modelLoader(GLint _postionLocation, GLint _texCoordLocation, GLint _samplerLocation)
+	modelLoader(GLint _postionLocation, GLint _texCoordLocation, 
+		GLint _samplerLocation, GLuint _materialAmbientColorLoc)
 	{
 		positionLocation = _postionLocation;
 		texCoordLocation = _texCoordLocation;
 		samplerLocation = _samplerLocation;
+		materialAmbientColorLoc = _materialAmbientColorLoc;
 	}
 	~modelLoader()
 	{
@@ -794,15 +804,17 @@ public:
 		{
 			unsigned int materialIndex = meshes[i].materialIndex;
 
-			if (materialIndex >= textures.size())
+			if (materialIndex >= materials.size())
 			{
 				printf("the material index in wrong!\n");
 				exit(1);
 			}
 
-			if (textures[materialIndex] != NULL)
+			setMaterial(materials[materialIndex]);
+
+			if (materials[materialIndex].pDiffuse != NULL)
 			{
-				textures[materialIndex]->bind(GL_TEXTURE0);
+				materials[materialIndex].pDiffuse->bind(GL_TEXTURE0);
 				glUniform1i(samplerLocation, 0);
 			}
 
@@ -834,7 +846,7 @@ private:
 	bool initFromScene(const aiScene* pScene, const string& fileName)
 	{
 		meshes.resize(pScene->mNumMeshes);
-		textures.resize(pScene->mNumMaterials);
+		materials.resize(pScene->mNumMaterials);
 
 		unsigned int numVertices = 0;
 		unsigned int numIndices = 0;
@@ -960,6 +972,8 @@ private:
 			const aiMaterial* pMaterial = pScene->mMaterials[i];
 
 			loadTextures(dir, pMaterial, i);
+
+			loadColors(pMaterial, i);
 		}
 
 		return ret;
@@ -974,7 +988,7 @@ private:
 	void loadDiffuseTexture(const string& dir,
 		const aiMaterial* pMaterial, int index)
 	{
-		textures[index] = NULL;
+		materials[index].pDiffuse = NULL;
 		if (pMaterial->GetTextureCount(aiTextureType_DIFFUSE) > 0)
 		{
 			aiString path;
@@ -991,10 +1005,32 @@ private:
 
 				string fullPath = dir + "/" + p;
 
-				textures[index] = new texture(fullPath.c_str());
-				textures[index]->load();
+				materials[index].pDiffuse = new texture(fullPath.c_str());
+				materials[index].pDiffuse->load();
 			}
 		}
+	}
+
+	void loadColors(const aiMaterial* pMaterial, int index)
+	{
+		aiColor3D ambientColor(0.0f, 0.0f, 0.0f);
+
+		if (pMaterial->Get(AI_MATKEY_COLOR_AMBIENT, ambientColor)
+			== AI_SUCCESS)
+		{
+			materials[index].ambientColor.x = ambientColor.r;
+			materials[index].ambientColor.y = ambientColor.g;
+			materials[index].ambientColor.z = ambientColor.b;
+		}
+	}
+
+	void setMaterial(const material& m)
+	{
+		glUniform3f(materialAmbientColorLoc,
+			m.ambientColor.x,
+			m.ambientColor.y,
+			m.ambientColor.z
+		);
 	}
 
 	//load the data into the buffers
@@ -1050,7 +1086,7 @@ private:
 	};
 
 	vector<basicMeshEntry> meshes;
-	vector<texture*> textures;
+	vector<material> materials;
 
 	//temporary space for vertex stuff before loading into GPU
 	vector<vec3> positions;
@@ -1062,4 +1098,212 @@ private:
 	GLint positionLocation;
 	GLint texCoordLocation;
 	GLint samplerLocation;
+	GLuint materialAmbientColorLoc;
+};
+
+class baseLight
+{
+public:
+	vec3 color;
+	float ambientIntensity;
+
+	baseLight(float _ambientIntensity)
+	{
+		color = vec3(1.0f, 1.0f, 1.0f);
+		ambientIntensity = _ambientIntensity;
+	}
+
+	baseLight(float _ambientIntensity, const vec3& _color)
+	{
+		ambientIntensity = _ambientIntensity;
+		color = _color;
+	}
+};
+
+class shader
+{
+public:
+	//the location of uniform and attribute
+	GLuint samplerLoc;
+	GLint positionLoc;
+	GLint texCoorLocation;
+	GLuint materialAmbientColorLoc;
+
+	//generate the shader program
+	bool init()
+	{
+		shaderProg = glCreateProgram();
+		if (shaderProg == 0)
+		{
+			printf("Error creating shader program\n");
+			return false;
+		}
+
+		if (!addShader(GL_VERTEX_SHADER, "shader.vs"))
+		{
+			return false;
+		}
+		if (!addShader(GL_FRAGMENT_SHADER, "shader.fs"))
+		{
+			return false;
+		}
+
+		if (!linkAndValidate())
+		{
+			return false;
+		}
+
+		positionLoc = getAtribLocation("Position");
+		texCoorLocation = getAtribLocation("TexCoord");
+		WVPLoc = getUniformLocation("gWVP");
+		samplerLoc = getUniformLocation("gSampler");
+		lightColorLoc = getUniformLocation("gLight.Color");
+		lightAmbientIntensityLoc =
+			getUniformLocation("gLight.AmbientIntensity");
+		materialAmbientColorLoc =
+			getUniformLocation("gMaterial.AmbientColor");
+
+		if (positionLoc == -1 ||
+			texCoorLocation == -1 ||
+			WVPLoc == -1 ||
+			samplerLoc == -1 ||
+			lightColorLoc == -1 ||
+			lightAmbientIntensityLoc == -1 ||
+			materialAmbientColorLoc == -1
+			)
+		{
+			return false;
+		}
+		return true;
+	}
+
+	//enable the shader program
+	void enable()
+	{
+		glUseProgram(shaderProg);
+	}
+
+	void setWVP(const mat4& WVP)
+	{
+		glUniformMatrix4fv(WVPLoc, 1, GL_TRUE, &WVP.m[0][0]);
+	}
+
+	void setTextureUnit(unsigned int textureUnit)
+	{
+		glUniform1i(samplerLoc, textureUnit);
+	}
+
+	void setLight(const baseLight& light)
+	{
+		glUniform3f(lightColorLoc,
+			light.color.x, light.color.y, light.color.z);
+		glUniform1f(lightAmbientIntensityLoc, light.ambientIntensity);
+	}
+private:
+	vector<GLuint> shaderObjList;
+	GLuint shaderProg;
+
+	//the location of uniform
+	GLuint lightColorLoc;
+	GLuint lightAmbientIntensityLoc;
+	GLuint WVPLoc;
+
+	//add shader to the program
+	bool addShader(GLenum shaderType, const char* pFileName)
+	{
+		string s;
+		if (!readFile(pFileName, s))
+		{
+			return false;
+		}
+
+		GLuint shaderObj = glCreateShader(shaderType);
+
+		if (shaderObj == 0)
+		{
+			printf("Error creating shader type %d\n", shaderType);
+			return false;
+		}
+
+		//save the shader object
+		shaderObjList.push_back(shaderObj);
+
+		const GLchar* p[1];
+		p[0] = s.c_str();
+		GLint lengths[1] = { (GLint)s.size() };
+
+		glShaderSource(shaderObj, 1, p, lengths);
+
+		glCompileShader(shaderObj);
+
+		GLint success;
+		glGetShaderiv(shaderObj, GL_COMPILE_STATUS, &success);
+		if (!success)
+		{
+			GLchar infoLog[1024];
+			glGetShaderInfoLog(shaderObj, 1024, NULL, infoLog);
+			printf("Error compiling '%s': '%s'\n", pFileName, infoLog);
+			return false;
+		}
+
+		glAttachShader(shaderProg, shaderObj);
+
+		return true;
+	}
+
+	//link and validate the program
+	bool linkAndValidate()
+	{
+		GLint success = 0;
+		GLchar errorLog[1024] = { 0 };
+
+		glLinkProgram(shaderProg);
+
+		glGetProgramiv(shaderProg, GL_LINK_STATUS, &success);
+		if (success == 0)
+		{
+			glGetProgramInfoLog(shaderProg, sizeof(errorLog), NULL, errorLog);
+			printf("Error linking shader program: '%s'\n", errorLog);
+			return false;
+		}
+
+		glValidateProgram(shaderProg);
+		glGetProgramiv(shaderProg, GL_VALIDATE_STATUS, &success);
+		if (!success)
+		{
+			glGetProgramInfoLog(shaderProg, sizeof(errorLog), NULL, errorLog);
+			printf("Invalid shader program: '%s'\n", errorLog);
+			return false;
+		}
+
+		//delete the intermediate shader objects
+		for (auto it : shaderObjList)
+		{
+			glDeleteShader(it);
+		}
+
+		shaderObjList.clear();
+
+		return glGetError() == GL_NO_ERROR;
+	}
+
+	GLint getUniformLocation(const char* pUniformName)
+	{
+		GLuint location = glGetUniformLocation(shaderProg, pUniformName);
+		if (location == -1)
+		{
+			printf("Error getting the location of '%s'\n", pUniformName);
+		}
+		return location;
+	}
+
+	GLint getAtribLocation(const char* pAttribName)
+	{
+		GLint location = glGetAttribLocation(shaderProg, pAttribName);
+		if (location == -1)
+		{
+			printf("Error getting the location of '%s'\n", pAttribName);
+		}
+		return location;
+	}
 };
