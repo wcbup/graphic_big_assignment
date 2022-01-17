@@ -17,9 +17,10 @@ projection myProjection(45.0f, WINDOW_WIDTH, WINDOW_HEIGHT, 1, 100);
 modelLoader* myMesh = NULL;
 shader* myShader = NULL;
 
-//set the ambient intensity
-baseLight myLight(0.8f);
-//baseLight myLight(1.0f, vec3(1.0f, 0.0f, 0.0f));
+//dirctional light come from left
+dirctionalLight dirLight(0.1f,
+	1.0f,
+	vec3(1.0f, 0.0f, 0.0f));
 
 void renderScene()
 {
@@ -33,15 +34,17 @@ void renderScene()
 
 	//transform from local coordinate to world coordinate
 	worldTransform myWorldTransform;
-	myWorldTransform.scale(15);
+	myWorldTransform.scale(0.05);
 	myWorldTransform.rotateY(angleInRadians);
-	myWorldTransform.transplate(-1, 0, 5);
+	myWorldTransform.transplate(-1, 0, 25);
 
 	mat4 WVP;
 	WVP = myProjection.getMatrix() * myCamera.getMatrix() * myWorldTransform.getMatrix();
-	
+
 	myShader->setWVP(WVP);
-	myShader->setLight(myLight);
+
+	dirLight.calLocation(WVP);
+	myShader->setDirectionalLight(dirLight);
 
 	myMesh->render();
 
@@ -111,9 +114,10 @@ int main(int argc, char** argv)
 		myShader->positionLoc,
 		myShader->texCoorLocation,
 		myShader->samplerLoc,
-		myShader->materialAmbientColorLoc
+		myShader->normalLocation,
+		myShader->materialLocation
 	);
-	myMesh->loadMesh("../res/Camera_01_1k.blend/Camera_01_1k.obj");
+	myMesh->loadMesh("../res/formula 1/Formula 1 mesh.obj");
 
 	initGlut();
 

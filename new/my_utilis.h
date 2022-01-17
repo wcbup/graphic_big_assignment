@@ -47,57 +47,6 @@ bool readFile(const char* pFileName, string& outFile)
 	return ret;
 }
 
-class mat4
-{
-public:
-	float m[4][4];
-	//init to be identity matrix
-	mat4()
-	{
-		for (int i = 0; i < 4; i++)
-		{
-			for (int j = 0; j < 4; j++)
-			{
-				if (i == j)
-				{
-					m[i][j] = 1;
-				}
-				else
-				{
-					m[i][j] = 0;
-				}
-			}
-		}
-	}
-	mat4(float a00, float a01, float a02, float a03,
-		float a10, float a11, float a12, float a13,
-		float a20, float a21, float a22, float a23,
-		float a30, float a31, float a32, float a33)
-	{
-		m[0][0] = a00; m[0][1] = a01; m[0][2] = a02; m[0][3] = a03;
-		m[1][0] = a10; m[1][1] = a11; m[1][2] = a12; m[1][3] = a13;
-		m[2][0] = a20; m[2][1] = a21; m[2][2] = a22; m[2][3] = a23;
-		m[3][0] = a30; m[3][1] = a31; m[3][2] = a32; m[3][3] = a33;
-	}
-
-	mat4 operator*(const mat4& Right) const
-	{
-		mat4 Ret;
-		for (unsigned int i = 0; i < 4; i++) 
-		{
-			for (unsigned int j = 0; j < 4; j++) 
-			{
-				Ret.m[i][j] = m[i][0] * Right.m[0][j] +
-					m[i][1] * Right.m[1][j] +
-					m[i][2] * Right.m[2][j] +
-					m[i][3] * Right.m[3][j];
-			}
-		}
-		return Ret;
-	}
-};
-
-
 class vec3
 {
 public:
@@ -160,6 +109,116 @@ public:
 		return ret;
 	}
 };
+
+
+class mat4
+{
+public:
+	float m[4][4];
+	//init to be identity matrix
+	mat4()
+	{
+		for (int i = 0; i < 4; i++)
+		{
+			for (int j = 0; j < 4; j++)
+			{
+				if (i == j)
+				{
+					m[i][j] = 1;
+				}
+				else
+				{
+					m[i][j] = 0;
+				}
+			}
+		}
+	}
+	mat4(float a00, float a01, float a02, float a03,
+		float a10, float a11, float a12, float a13,
+		float a20, float a21, float a22, float a23,
+		float a30, float a31, float a32, float a33)
+	{
+		m[0][0] = a00; m[0][1] = a01; m[0][2] = a02; m[0][3] = a03;
+		m[1][0] = a10; m[1][1] = a11; m[1][2] = a12; m[1][3] = a13;
+		m[2][0] = a20; m[2][1] = a21; m[2][2] = a22; m[2][3] = a23;
+		m[3][0] = a30; m[3][1] = a31; m[3][2] = a32; m[3][3] = a33;
+	}
+
+	mat4 operator*(const mat4& Right) const
+	{
+		mat4 Ret;
+		for (unsigned int i = 0; i < 4; i++) 
+		{
+			for (unsigned int j = 0; j < 4; j++) 
+			{
+				Ret.m[i][j] = m[i][0] * Right.m[0][j] +
+					m[i][1] * Right.m[1][j] +
+					m[i][2] * Right.m[2][j] +
+					m[i][3] * Right.m[3][j];
+			}
+		}
+		return Ret;
+	}
+};
+
+class mat3
+{
+public:
+	float m[3][3];
+
+	//init to be indentity matrix
+	mat3()
+	{
+		for (int i = 0; i < 3; i++)
+		{
+			for (int j = 0; j < 3; j++)
+			{
+				if (i == j)
+				{
+					m[i][j] = 1;
+				}
+				else
+				{
+					m[i][j] = 0;
+				}
+			}
+		}
+	}
+
+	//init from the left top corner;
+	mat3(const mat4& a)
+	{
+		m[0][0] = a.m[0][0]; m[0][1] = a.m[0][1]; m[0][2] = a.m[0][2];
+		m[1][0] = a.m[1][0]; m[1][1] = a.m[1][1]; m[1][2] = a.m[1][2];
+		m[2][0] = a.m[2][0]; m[2][1] = a.m[2][1]; m[2][2] = a.m[2][2];
+	}
+
+	vec3 operator*(const vec3& v)
+	{
+		vec3 r;
+
+		r.x = m[0][0] * v.x + m[0][1] * v.y + m[0][2] * v.z;
+		r.y = m[1][0] * v.x + m[1][1] * v.y + m[1][2] * v.z;
+		r.z = m[2][0] * v.x + m[2][1] * v.y + m[2][2] * v.z;
+
+		return r;
+	}
+
+	mat3 getTranspose()
+	{
+		mat3 n;
+
+		for (unsigned int i = 0; i < 3; i++) {
+			for (unsigned int j = 0; j < 3; j++) {
+				n.m[i][j] = m[j][i];
+			}
+		}
+
+		return n;
+	}
+};
+
+
 
 vec3 operator*(const vec3& l, float r)
 {
@@ -743,8 +802,23 @@ class material
 {
 public:
 	vec3 ambientColor = vec3(0.0f, 0.0f, 0.0f);
+	vec3 diffuseColor = vec3(0.0f, 0.0f, 0.0f);
 
 	texture* pDiffuse = NULL; //the base texture
+};
+
+struct materialLoc
+{
+	GLuint ambientColor;
+	GLuint diffuseColor;
+};
+
+struct dirLightLoc
+{
+	GLuint color;
+	GLuint ambientIntensity;
+	GLuint direction;
+	GLuint diffuseIntensity;
 };
 
 //for loading the obj model and render
@@ -753,12 +827,14 @@ class modelLoader
 {
 public:
 	modelLoader(GLint _postionLocation, GLint _texCoordLocation, 
-		GLint _samplerLocation, GLuint _materialAmbientColorLoc)
+		GLint _samplerLocation, GLint _normalLocation, 
+		const materialLoc& _materialLocation)
 	{
 		positionLocation = _postionLocation;
 		texCoordLocation = _texCoordLocation;
 		samplerLocation = _samplerLocation;
-		materialAmbientColorLoc = _materialAmbientColorLoc;
+		normalLocation = _normalLocation;
+		materialLocation = _materialLocation;
 	}
 	~modelLoader()
 	{
@@ -1022,14 +1098,29 @@ private:
 			materials[index].ambientColor.y = ambientColor.g;
 			materials[index].ambientColor.z = ambientColor.b;
 		}
+
+		aiColor3D diffuseColor(0.0f, 0.0f, 0.0f);
+
+		if (pMaterial->Get(AI_MATKEY_COLOR_DIFFUSE, diffuseColor)
+			== AI_SUCCESS)
+		{
+			materials[index].diffuseColor.x = diffuseColor.r;
+			materials[index].diffuseColor.y = diffuseColor.g;
+			materials[index].diffuseColor.z = diffuseColor.b;
+		}
 	}
 
 	void setMaterial(const material& m)
 	{
-		glUniform3f(materialAmbientColorLoc,
+		glUniform3f(materialLocation.ambientColor,
 			m.ambientColor.x,
 			m.ambientColor.y,
 			m.ambientColor.z
+		);
+		glUniform3f(materialLocation.diffuseColor,
+			m.diffuseColor.x,
+			m.diffuseColor.y,
+			m.diffuseColor.z
 		);
 	}
 
@@ -1052,6 +1143,15 @@ private:
 		glVertexAttribPointer(texCoordLocation, 2, GL_FLOAT,
 			GL_FALSE, 0, 0);
 
+		glBindBuffer(GL_ARRAY_BUFFER, buffers[NORMAL_VB]);
+		glBufferData(GL_ARRAY_BUFFER,
+			sizeof(normals[0]) * normals.size(),
+			&normals[0],
+			GL_STATIC_DRAW);
+		glEnableVertexAttribArray(normalLocation);
+		glVertexAttribPointer(normalLocation, 3, GL_FLOAT,
+			GL_FALSE, 0, 0);
+
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers[INDEX_BUFFER]);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER,
 			sizeof(indices[0]) * indices.size(),
@@ -1065,7 +1165,7 @@ private:
 		INDEX_BUFFER = 0,	
 		POS_VB		 = 1,	//position bufer
 		TEXCOORD_VB  = 2,	//texture coord buffer
-		NORMAL_VB	 = 3,
+		NORMAL_VB	 = 3,	//normal buffer
 		NUM_BUFFERS  = 4
 	};
 
@@ -1097,8 +1197,9 @@ private:
 	//the uniform location in shader
 	GLint positionLocation;
 	GLint texCoordLocation;
+	GLint normalLocation;
 	GLint samplerLocation;
-	GLuint materialAmbientColorLoc;
+	materialLoc materialLocation;
 };
 
 class baseLight
@@ -1120,6 +1221,53 @@ public:
 	}
 };
 
+class dirctionalLight : public baseLight
+{
+public:
+	//the direction of light in world coordinate
+	vec3 worldDirection;
+	float diffuseIntensity;
+
+	dirctionalLight(float _ambientIntensity,
+		float _diffuseIntensity,
+		const vec3& _worldDirection):baseLight(_ambientIntensity)
+	{
+		diffuseIntensity = _diffuseIntensity;
+		worldDirection = _worldDirection;
+	}
+
+	dirctionalLight(float _ambientIntensity,
+		const vec3& _color,
+		float _diffuseIntensity,
+		const vec3& _worldDirection) :
+		baseLight(_ambientIntensity, _color)
+	{
+		diffuseIntensity = _diffuseIntensity;
+		worldDirection = _worldDirection;
+	}
+
+	//calculate the light direction in local coordinate
+	void calLocation(const mat4& world)
+	{
+		mat3 world3f(world);//init from top left corner
+		
+		//inverse local-to-world transformation
+		mat3 worldToLocal = world3f.getTranspose();
+		
+		vec3 localDirection = worldToLocal * worldDirection;
+		localDirection.normalize();
+		m_localdirection =  localDirection;
+	}
+
+	const vec3& getlocalDirection() const
+	{
+		return m_localdirection;
+	}
+
+private:
+	vec3 m_localdirection = vec3(0.0f, 0.0f, 0.0f);
+};
+
 class shader
 {
 public:
@@ -1127,7 +1275,8 @@ public:
 	GLuint samplerLoc;
 	GLint positionLoc;
 	GLint texCoorLocation;
-	GLuint materialAmbientColorLoc;
+	GLint normalLocation;
+	materialLoc materialLocation;
 
 	//generate the shader program
 	bool init()
@@ -1155,21 +1304,34 @@ public:
 
 		positionLoc = getAtribLocation("Position");
 		texCoorLocation = getAtribLocation("TexCoord");
+		normalLocation = getAtribLocation("Normal");
 		WVPLoc = getUniformLocation("gWVP");
 		samplerLoc = getUniformLocation("gSampler");
-		lightColorLoc = getUniformLocation("gLight.Color");
-		lightAmbientIntensityLoc =
-			getUniformLocation("gLight.AmbientIntensity");
-		materialAmbientColorLoc =
+		materialLocation.ambientColor =
 			getUniformLocation("gMaterial.AmbientColor");
+		materialLocation.diffuseColor =
+			getUniformLocation("gMaterial.DiffuseColor");
+		dirLightLocation.color =
+			getUniformLocation("gDirectionalLight.Color");
+		dirLightLocation.ambientIntensity =
+			getUniformLocation("gDirectionalLight.AmbientIntensity");
+		dirLightLocation.direction =
+			getUniformLocation("gDirectionalLight.Direction");
+		dirLightLocation.diffuseIntensity =
+			getUniformLocation("gDirectionalLight.DiffuseIntensity");
+
 
 		if (positionLoc == -1 ||
 			texCoorLocation == -1 ||
+			normalLocation == -1 ||
 			WVPLoc == -1 ||
 			samplerLoc == -1 ||
-			lightColorLoc == -1 ||
-			lightAmbientIntensityLoc == -1 ||
-			materialAmbientColorLoc == -1
+			materialLocation.ambientColor == -1 ||
+			materialLocation.diffuseColor == -1 ||
+			dirLightLocation.color == -1 ||
+			dirLightLocation.ambientIntensity == -1 ||
+			dirLightLocation.direction == -1 ||
+			dirLightLocation.diffuseIntensity == -1
 			)
 		{
 			return false;
@@ -1193,20 +1355,30 @@ public:
 		glUniform1i(samplerLoc, textureUnit);
 	}
 
-	void setLight(const baseLight& light)
+	void setDirectionalLight(const dirctionalLight& light)
 	{
-		glUniform3f(lightColorLoc,
-			light.color.x, light.color.y, light.color.z);
-		glUniform1f(lightAmbientIntensityLoc, light.ambientIntensity);
+		glUniform3f(dirLightLocation.color,
+			light.color.x,
+			light.color.y,
+			light.color.z);
+		glUniform1f(dirLightLocation.ambientIntensity,
+			light.ambientIntensity);
+		vec3 localDirection = light.getlocalDirection();
+		glUniform3f(dirLightLocation.direction,
+			localDirection.x,
+			localDirection.y,
+			localDirection.z
+		);
+		glUniform1f(dirLightLocation.diffuseIntensity,
+			light.diffuseIntensity);
 	}
 private:
 	vector<GLuint> shaderObjList;
 	GLuint shaderProg;
 
 	//the location of uniform
-	GLuint lightColorLoc;
-	GLuint lightAmbientIntensityLoc;
 	GLuint WVPLoc;
+	dirLightLoc dirLightLocation;
 
 	//add shader to the program
 	bool addShader(GLenum shaderType, const char* pFileName)
