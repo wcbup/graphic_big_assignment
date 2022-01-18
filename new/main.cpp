@@ -18,7 +18,7 @@ modelLoader* myMesh = NULL;
 shader* myShader = NULL;
 
 //dirctional light come from left
-dirctionalLight dirLight(0.1f,
+dirctionalLight dirLight(0.2f,
 	1.0f,
 	vec3(1.0f, -1.0f, -1.0f));
 
@@ -34,9 +34,9 @@ void renderScene()
 
 	//transform from local coordinate to world coordinate
 	worldTransform myWorldTransform;
-	myWorldTransform.scale(1);
-	myWorldTransform.rotateY(1);
-	myWorldTransform.transplate(-1, -2, 5);
+	myWorldTransform.scale(0.05);
+	myWorldTransform.rotateY(angleInRadians);
+	myWorldTransform.transplate(0, -0.5, 25);
 
 	mat4 WVP;
 	WVP = myProjection.getMatrix() * myCamera.getMatrix() * myWorldTransform.getMatrix();
@@ -55,6 +55,14 @@ void renderScene()
 
 void keyboard(unsigned char key, int mouse_x, int mouse_y)
 {
+	if (key == 'i')
+	{
+		myProjection.zoomIn();
+	}
+	else if (key == 'o')
+	{
+		myProjection.zoomOut();
+	}
 	myCamera.handleKeyBoard(key);
 }
 
@@ -115,7 +123,7 @@ int main(int argc, char** argv)
 		myShader->materialLocation,
 		myShader->hasTexLoc
 	);
-	myMesh->loadMesh("../res/myroom/Room.obj");
+	myMesh->loadMesh("../res/formula 1/Formula 1 mesh.obj");
 
 	initGlut();
 

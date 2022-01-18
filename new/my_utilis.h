@@ -394,6 +394,12 @@ public:
 	projection(float FOV, float width, float height, float zNear,
 		float zFar)
 	{
+		m_FOV = FOV;
+		m_width = width;
+		m_height = height;
+		m_zNear = zNear;
+		m_zFar = zFar;
+
 		FOV = FOV * PI / 180.0f;
 		float tanHalfFOV = tanf(FOV / 2.0f);
 		float d = 1.0f / tanHalfFOV;
@@ -411,8 +417,33 @@ public:
 		);
 	}
 
+	//reduce the FOV
+	void zoomIn()
+	{
+		if (m_FOV <= 2.0f)
+		{
+			return;//minimun value is 5.0f
+		}
+		(*this) = projection(m_FOV - 1, m_width, m_height, m_zNear, m_zFar);
+	}
+
+	//increase the FOV
+	void zoomOut()
+	{
+		if (m_FOV >= 170.0f)
+		{
+			return;//maximun value is 170.0f		}
+		}
+		(*this) = projection(m_FOV + 1, m_width, m_height, m_zNear, m_zFar);
+	}
+
 private:
 	mat4 matrix;
+	float m_FOV;
+	float m_width;
+	float m_height;
+	float m_zNear;
+	float m_zFar;
 };
 
 //generate the camera matrix
