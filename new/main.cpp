@@ -18,7 +18,7 @@ modelLoader* myMesh = NULL;
 shader* myShader = NULL;
 
 //dirctional light come from left
-dirctionalLight dirLight(0.1f,
+dirctionalLight dirLight(0.3f,
 	1.0f,
 	vec3(1.0f, 0.0f, 0.0f));
 
@@ -36,7 +36,7 @@ void renderScene()
 	worldTransform myWorldTransform;
 	myWorldTransform.scale(0.05);
 	myWorldTransform.rotateY(angleInRadians);
-	myWorldTransform.transplate(-1, 0, 25);
+	myWorldTransform.transplate(-1, -2, 25);
 
 	mat4 WVP;
 	WVP = myProjection.getMatrix() * myCamera.getMatrix() * myWorldTransform.getMatrix();
@@ -97,9 +97,6 @@ int main(int argc, char** argv)
 	glClearColor(red, green, blue, alpha);
 
 	//remember to enable all below
-	glEnable(GL_CULL_FACE);
-	glFrontFace(GL_CW);
-	glCullFace(GL_BACK);
 	glEnable(GL_DEPTH_TEST);
 
 	//compileShader();
@@ -115,7 +112,8 @@ int main(int argc, char** argv)
 		myShader->texCoorLocation,
 		myShader->samplerLoc,
 		myShader->normalLocation,
-		myShader->materialLocation
+		myShader->materialLocation,
+		myShader->hasTexLoc
 	);
 	myMesh->loadMesh("../res/formula 1/Formula 1 mesh.obj");
 

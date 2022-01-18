@@ -828,13 +828,14 @@ class modelLoader
 public:
 	modelLoader(GLint _postionLocation, GLint _texCoordLocation, 
 		GLint _samplerLocation, GLint _normalLocation, 
-		const materialLoc& _materialLocation)
+		const materialLoc& _materialLocation, GLint _hasTexLocation)
 	{
 		positionLocation = _postionLocation;
 		texCoordLocation = _texCoordLocation;
 		samplerLocation = _samplerLocation;
 		normalLocation = _normalLocation;
 		materialLocation = _materialLocation;
+		hasTextureLocation = _hasTexLocation;
 	}
 	~modelLoader()
 	{
@@ -892,6 +893,11 @@ public:
 			{
 				materials[materialIndex].pDiffuse->bind(GL_TEXTURE0);
 				glUniform1i(samplerLocation, 0);
+				glUniform1i(hasTextureLocation, 1);
+			}
+			else
+			{
+				glUniform1i(hasTextureLocation, 0);
 			}
 
 			glDrawElementsBaseVertex(GL_TRIANGLES,
@@ -1200,6 +1206,7 @@ private:
 	GLint normalLocation;
 	GLint samplerLocation;
 	materialLoc materialLocation;
+	GLint hasTextureLocation;
 };
 
 class baseLight
@@ -1277,6 +1284,7 @@ public:
 	GLint texCoorLocation;
 	GLint normalLocation;
 	materialLoc materialLocation;
+	GLint hasTexLoc;
 
 	//generate the shader program
 	bool init()
@@ -1319,6 +1327,8 @@ public:
 			getUniformLocation("gDirectionalLight.Direction");
 		dirLightLocation.diffuseIntensity =
 			getUniformLocation("gDirectionalLight.DiffuseIntensity");
+		hasTexLoc =
+			getUniformLocation("hasTexture");
 
 
 		if (positionLoc == -1 ||
@@ -1331,7 +1341,8 @@ public:
 			dirLightLocation.color == -1 ||
 			dirLightLocation.ambientIntensity == -1 ||
 			dirLightLocation.direction == -1 ||
-			dirLightLocation.diffuseIntensity == -1
+			dirLightLocation.diffuseIntensity == -1 ||
+			hasTexLoc == -1
 			)
 		{
 			return false;

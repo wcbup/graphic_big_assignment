@@ -22,6 +22,7 @@ struct Material
 uniform DirectionalLight gDirectionalLight;
 uniform Material gMaterial;
 uniform sampler2D gSampler;
+uniform int hasTexture;
 
 float getGrayScale(vec4 color)
 {
@@ -80,8 +81,20 @@ void main()
                        DiffuseFactor;
     }
 
-    FragColor = texture2D(gSampler, TexCoord0.xy) *
-                (AmbientColor + DiffuseColor);
+    if(hasTexture == 0)
+    {
+        FragColor = vec4(0.8f ,0.8f, 0.8f, 1) * (AmbientColor + DiffuseColor);
+    }
+    else
+    {
+        FragColor = texture2D(gSampler, TexCoord0.xy) *
+                    (AmbientColor + DiffuseColor);
+    }
+
+    // if(FragColor == vec4(0,0,0,0))
+    // {
+    //     FragColor = vec4(1,1,1,1) * (AmbientColor + DiffuseColor);
+    // }
 
     // FragColor = getSobelColor();
 }
