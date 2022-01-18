@@ -18,9 +18,9 @@ modelLoader* myMesh = NULL;
 shader* myShader = NULL;
 
 //dirctional light come from left
-dirctionalLight dirLight(0.3f,
+dirctionalLight dirLight(0.1f,
 	1.0f,
-	vec3(1.0f, 0.0f, 0.0f));
+	vec3(1.0f, -1.0f, -1.0f));
 
 void renderScene()
 {
@@ -34,9 +34,9 @@ void renderScene()
 
 	//transform from local coordinate to world coordinate
 	worldTransform myWorldTransform;
-	myWorldTransform.scale(0.05);
-	myWorldTransform.rotateY(angleInRadians);
-	myWorldTransform.transplate(-1, -2, 25);
+	myWorldTransform.scale(1);
+	myWorldTransform.rotateY(1);
+	myWorldTransform.transplate(-1, -2, 5);
 
 	mat4 WVP;
 	WVP = myProjection.getMatrix() * myCamera.getMatrix() * myWorldTransform.getMatrix();
@@ -115,7 +115,7 @@ int main(int argc, char** argv)
 		myShader->materialLocation,
 		myShader->hasTexLoc
 	);
-	myMesh->loadMesh("../res/formula 1/Formula 1 mesh.obj");
+	myMesh->loadMesh("../res/myroom/Room.obj");
 
 	initGlut();
 
