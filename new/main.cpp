@@ -29,38 +29,51 @@ dirctionalLight dirLight(0.2f,
 	1.0f,
 	vec3(1.0f, -1.0f, -1.0f));
 
-void renderScene()
+void renderInNormalMode()
 {
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	myShader->enable();
+	myCamera.updateAtEdge();
 
-	//myCamera.updateAtEdge();
+	static float angleInRadians = 0;
+	static float delta = 0.005f;
+	angleInRadians += delta;
 
-	//static float angleInRadians = 0;
-	//static float delta = 0.005f;
-	//angleInRadians += delta;
+	//transform from local coordinate to world coordinate
+	worldTransform myWorldTransform;
+	myWorldTransform.scale(1);
+	//myWorldTransform.rotateY(angleInRadians);
+	myWorldTransform.transplate(0, -0.5, 5);
 
-	////transform from local coordinate to world coordinate
-	//worldTransform myWorldTransform;
-	//myWorldTransform.scale(1);
-	////myWorldTransform.rotateY(angleInRadians);
-	//myWorldTransform.transplate(-3, -0.5, 5);
+	mat4 WVP;
+	WVP = myProjection.getMatrix() * myCamera.getMatrix() * myWorldTransform.getMatrix();
 
-	//mat4 WVP;
-	//WVP = myProjection.getMatrix() * myCamera.getMatrix() * myWorldTransform.getMatrix();
+	myShader->setWVP(WVP);
 
-	//myShader->setWVP(WVP);
+	dirLight.calLocation(WVP);
+	myShader->setDirectionalLight(dirLight);
 
-	//dirLight.calLocation(WVP);
-	//myShader->setDirectionalLight(dirLight);
+	myMesh->render();
 
-	//myMesh->render();
+}
 
-	//myGrid->render();
-
+void renderInEditMode()
+{
 	glUseProgram(0);
 	
 	myGrid->render();
+}
 
+void renderScene()
+{
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	if (isInEditMode)
+	{
+		renderInEditMode();
+	}
+	else
+	{
+		renderInNormalMode();
+	}
 	glutPostRedisplay();
 
 	glutSwapBuffers();
@@ -75,6 +88,10 @@ void keyboard(unsigned char key, int mouse_x, int mouse_y)
 	else if (key == 'o')
 	{
 		myProjection.zoomOut();
+	}
+	else if (key == 'e')
+	{
+		isInEditMode = !isInEditMode;
 	}
 	myCamera.handleKeyBoard(key);
 }
