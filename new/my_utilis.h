@@ -859,7 +859,8 @@ class modelLoader
 public:
 	modelLoader(GLint _postionLocation, GLint _texCoordLocation, 
 		GLint _samplerLocation, GLint _normalLocation, 
-		const materialLoc& _materialLocation, GLint _hasTexLocation)
+		const materialLoc& _materialLocation, GLint _hasTexLocation,
+		GLint _isManSetColorLoc)
 	{
 		positionLocation = _postionLocation;
 		texCoordLocation = _texCoordLocation;
@@ -867,6 +868,7 @@ public:
 		normalLocation = _normalLocation;
 		materialLocation = _materialLocation;
 		hasTextureLocation = _hasTexLocation;
+		isManSetColorLoc = _isManSetColorLoc;
 	}
 	~modelLoader()
 	{
@@ -930,6 +932,8 @@ public:
 			{
 				glUniform1i(hasTextureLocation, 0);
 			}
+			
+			glUniform1i(isManSetColorLoc, 0);
 
 			glDrawElementsBaseVertex(GL_TRIANGLES,
 				meshes[i].numIndices,
@@ -1238,6 +1242,7 @@ private:
 	GLint samplerLocation;
 	materialLoc materialLocation;
 	GLint hasTextureLocation;
+	GLint isManSetColorLoc;
 };
 
 class baseLight
@@ -1316,6 +1321,8 @@ public:
 	GLint normalLocation;
 	materialLoc materialLocation;
 	GLint hasTexLoc;
+	GLint isManualSetColorLoc;
+	GLint myColorLoc;
 
 	//generate the shader program
 	bool init()
@@ -1360,6 +1367,10 @@ public:
 			getUniformLocation("gDirectionalLight.DiffuseIntensity");
 		hasTexLoc =
 			getUniformLocation("hasTexture");
+		isManualSetColorLoc = 
+			getUniformLocation("isManualSetColor");
+		myColorLoc =
+			getUniformLocation("myColor");
 
 
 		if (positionLoc == -1 ||
@@ -1373,7 +1384,9 @@ public:
 			dirLightLocation.ambientIntensity == -1 ||
 			dirLightLocation.direction == -1 ||
 			dirLightLocation.diffuseIntensity == -1 ||
-			hasTexLoc == -1
+			hasTexLoc == -1 ||
+			isManualSetColorLoc == -1 ||
+			myColorLoc == -1
 			)
 		{
 			return false;

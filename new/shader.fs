@@ -23,6 +23,8 @@ uniform DirectionalLight gDirectionalLight;
 uniform Material gMaterial;
 uniform sampler2D gSampler;
 uniform int hasTexture;
+uniform int isManualSetColor;//is the color set manually
+uniform vec3 myColor;//the munually set color
 
 float getGrayScale(vec4 color)
 {
@@ -81,7 +83,11 @@ void main()
                        DiffuseFactor;
     }
 
-    if(hasTexture == 0)
+    if(isManualSetColor != 0)
+    {
+        FragColor = vec4(myColor, 1.0f);
+    }
+    else if(hasTexture == 0)
     {
         FragColor = vec4(0.8f ,0.8f, 0.8f, 1) * (AmbientColor + DiffuseColor);
     }

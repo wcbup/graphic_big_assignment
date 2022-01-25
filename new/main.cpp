@@ -121,7 +121,8 @@ int main(int argc, char** argv)
 		myShader->samplerLoc,
 		myShader->normalLocation,
 		myShader->materialLocation,
-		myShader->hasTexLoc
+		myShader->hasTexLoc,
+		myShader->isManualSetColorLoc
 	);
 	myMesh->loadMesh("../res/formula 1/Formula 1 mesh.obj");
 
