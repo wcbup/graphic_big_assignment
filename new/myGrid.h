@@ -104,14 +104,14 @@ public:
 
 	void handleClick(int mouseX, int mouseY)
 	{
-		printf("mouse clicked x:%d, y:%d\n", mouseX, mouseY);
+		//printf("mouse clicked x:%d, y:%d\n", mouseX, mouseY);
 		int xIndex = 0, yIndex = 0;
 		float recWidth = windowWidth / 5;
 		float recHeight = windowHeight / 5;
 		yIndex = mouseX / recWidth;
 		xIndex = mouseY / recHeight;
 		isClick[xIndex][yIndex] = !isClick[xIndex][yIndex];
-		printf("xIndex:%d, yIndex:%d\n", xIndex, yIndex);
+		//printf("xIndex:%d, yIndex:%d\n", xIndex, yIndex);
 	}
 private:
 	rectangle recs[5][5];
