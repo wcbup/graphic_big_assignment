@@ -1,6 +1,7 @@
 #pragma once
 
 #include "my_utilis.h"
+#include "myShader.h"
 
 //for loading the obj model and render
 //support texture

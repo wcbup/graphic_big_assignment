@@ -8,6 +8,7 @@
 #include "myCamera.h"
 #include "modelLoader.h"
 #include "myShader.h"
+#include "myGrid.h"
 
 #define WINDOW_WIDTH  1280
 #define WINDOW_HEIGHT 720
@@ -19,6 +20,9 @@ projection myProjection(45.0f, WINDOW_WIDTH, WINDOW_HEIGHT, 1, 1000);
 
 modelLoader* myMesh = NULL;
 shader* myShader = NULL;
+grid* myGrid = NULL;
+
+bool isInEditMode = false;
 
 //dirctional light come from left
 dirctionalLight dirLight(0.2f,
@@ -29,27 +33,36 @@ void renderScene()
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	myCamera.updateAtEdge();
+	//myCamera.updateAtEdge();
 
-	static float angleInRadians = 0;
-	static float delta = 0.005f;
-	angleInRadians += delta;
+	//static float angleInRadians = 0;
+	//static float delta = 0.005f;
+	//angleInRadians += delta;
 
-	//transform from local coordinate to world coordinate
-	worldTransform myWorldTransform;
-	myWorldTransform.scale(0.05);
-	myWorldTransform.rotateY(angleInRadians);
-	myWorldTransform.transplate(0, -0.5, 25);
+	////transform from local coordinate to world coordinate
+	//worldTransform myWorldTransform;
+	//myWorldTransform.scale(1);
+	////myWorldTransform.rotateY(angleInRadians);
+	//myWorldTransform.transplate(-3, -0.5, 5);
 
-	mat4 WVP;
-	WVP = myProjection.getMatrix() * myCamera.getMatrix() * myWorldTransform.getMatrix();
+	//mat4 WVP;
+	//WVP = myProjection.getMatrix() * myCamera.getMatrix() * myWorldTransform.getMatrix();
 
-	myShader->setWVP(WVP);
+	//myShader->setWVP(WVP);
 
-	dirLight.calLocation(WVP);
-	myShader->setDirectionalLight(dirLight);
+	//dirLight.calLocation(WVP);
+	//myShader->setDirectionalLight(dirLight);
 
-	myMesh->render();
+	//myMesh->render();
+
+	//myGrid->render();
+
+	glUseProgram(0);
+	
+	glBegin(GL_LINES);
+	glVertex2f(0, 0);
+	glVertex2f(1, 1);
+	glEnd();
 
 	glutPostRedisplay();
 
@@ -127,7 +140,13 @@ int main(int argc, char** argv)
 		myShader->hasTexLoc,
 		myShader->isManualSetColorLoc
 	);
-	myMesh->loadMesh("../res/formula 1/Formula 1 mesh.obj");
+	myMesh->loadMesh("../res/wine_barrel_01_4k.blend/wine_barrel_01_4k.obj");
+
+	myGrid = new grid(
+		myShader->positionLoc,
+		myShader->isManualSetColorLoc,
+		myShader->myColorLoc
+	);
 
 	initGlut();
 

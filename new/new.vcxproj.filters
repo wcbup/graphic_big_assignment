@@ -35,6 +35,9 @@
     <ClInclude Include="myCamera.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="myGrid.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="shader.vs">
