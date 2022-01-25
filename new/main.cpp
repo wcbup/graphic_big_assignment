@@ -9,6 +9,7 @@
 #include "modelLoader.h"
 #include "myShader.h"
 #include "myGrid.h"
+#include "basicUnit.h"
 
 #define WINDOW_WIDTH  1280
 #define WINDOW_HEIGHT 720
@@ -21,6 +22,7 @@ projection myProjection(45.0f, WINDOW_WIDTH, WINDOW_HEIGHT, 1, 1000);
 modelLoader* myMesh = NULL;
 shader* myShader = NULL;
 grid* myGrid = NULL;
+basicUnit* myUnit = NULL;
 
 bool isInEditMode = false;
 
@@ -47,6 +49,10 @@ void renderInNormalMode()
 	mat4 WVP;
 	WVP = myProjection.getMatrix() * myCamera.getMatrix() * myWorldTransform.getMatrix();
 
+	worldTransform transform2;
+	transform2.transplate(sinf(angleInRadians), cosf(angleInRadians), 0);
+	WVP = WVP * transform2.getMatrix();
+
 	myShader->setWVP(WVP);
 
 	dirLight.calLocation(WVP);
@@ -54,6 +60,7 @@ void renderInNormalMode()
 
 	myMesh->render();
 
+	myUnit->render();
 }
 
 void renderInEditMode()
@@ -166,6 +173,7 @@ int main(int argc, char** argv)
 	myMesh->loadMesh("../res/wine_barrel_01_4k.blend/wine_barrel_01_4k.obj");
 
 	myGrid = new grid(WINDOW_WIDTH, WINDOW_HEIGHT);
+	myUnit = new basicUnit(myShader);
 
 	initGlut();
 
