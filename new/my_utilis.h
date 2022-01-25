@@ -334,7 +334,7 @@ public:
 		matrix.m[2][2] *= a;
 	}
 
-	//transplate to (x, y, z)
+	//transplate (x, y, z)
 	void transplate(float x, float y, float z)
 	{
 		matrix.m[0][3] += x;

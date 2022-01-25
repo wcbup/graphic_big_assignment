@@ -149,6 +149,7 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="assemblyLine.h" />
     <ClInclude Include="basicUnit.h" />
     <ClInclude Include="modelLoader.h" />
     <ClInclude Include="myGrid.h" />

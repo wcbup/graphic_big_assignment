@@ -10,6 +10,7 @@
 #include "myShader.h"
 #include "myGrid.h"
 #include "basicUnit.h"
+#include "assemblyLine.h"
 
 #define WINDOW_WIDTH  1280
 #define WINDOW_HEIGHT 720
@@ -23,6 +24,7 @@ modelLoader* myMesh = NULL;
 shader* myShader = NULL;
 grid* myGrid = NULL;
 basicUnit* myUnit = NULL;
+assemblyLine* myAssembleLine = NULL;
 
 bool isInEditMode = false;
 
@@ -33,7 +35,6 @@ dirctionalLight dirLight(0.2f,
 
 void renderInNormalMode()
 {
-	myShader->enable();
 	myCamera.updateAtEdge();
 
 	static float angleInRadians = 0;
@@ -49,10 +50,6 @@ void renderInNormalMode()
 	mat4 WVP;
 	WVP = myProjection.getMatrix() * myCamera.getMatrix() * myWorldTransform.getMatrix();
 
-	worldTransform transform2;
-	transform2.transplate(sinf(angleInRadians), cosf(angleInRadians), 0);
-	WVP = WVP * transform2.getMatrix();
-
 	myShader->setWVP(WVP);
 
 	dirLight.calLocation(WVP);
@@ -60,13 +57,14 @@ void renderInNormalMode()
 
 	myMesh->render();
 
-	myUnit->render();
+	//myUnit->render();
+
+	myAssembleLine->setWVP(WVP);
+	myAssembleLine->render();
 }
 
 void renderInEditMode()
 {
-	glUseProgram(0);
-	
 	myGrid->render();
 }
 
@@ -99,6 +97,15 @@ void keyboard(unsigned char key, int mouse_x, int mouse_y)
 	else if (key == 'e')
 	{
 		isInEditMode = !isInEditMode;
+		if (isInEditMode)
+		{
+			glUseProgram(0);
+		}
+		else
+		{
+			myShader->enable();
+			myAssembleLine->setClick(myGrid->isClick);
+		}
 	}
 	myCamera.handleKeyBoard(key);
 }
@@ -174,6 +181,7 @@ int main(int argc, char** argv)
 
 	myGrid = new grid(WINDOW_WIDTH, WINDOW_HEIGHT);
 	myUnit = new basicUnit(myShader);
+	myAssembleLine = new assemblyLine(WINDOW_WIDTH, WINDOW_HEIGHT, myShader);
 
 	initGlut();
 
