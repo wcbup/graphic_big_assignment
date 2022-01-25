@@ -26,6 +26,15 @@
     <ClInclude Include="my_utilis.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="myShader.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="modelLoader.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="myCamera.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="shader.vs">

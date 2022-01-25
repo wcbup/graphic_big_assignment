@@ -149,6 +149,9 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="modelLoader.h" />
+    <ClInclude Include="myShader.h" />
+    <ClInclude Include="myCamera.h" />
     <ClInclude Include="my_utilis.h" />
   </ItemGroup>
   <ItemGroup>

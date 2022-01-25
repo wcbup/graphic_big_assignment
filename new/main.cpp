@@ -5,6 +5,9 @@
 #include <math.h>
 #include <iostream>
 #include "my_utilis.h"
+#include "myCamera.h"
+#include "modelLoader.h"
+#include "myShader.h"
 
 #define WINDOW_WIDTH  1280
 #define WINDOW_HEIGHT 720
