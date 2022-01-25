@@ -59,10 +59,7 @@ void renderScene()
 
 	glUseProgram(0);
 	
-	glBegin(GL_LINES);
-	glVertex2f(0, 0);
-	glVertex2f(1, 1);
-	glEnd();
+	myGrid->render();
 
 	glutPostRedisplay();
 
@@ -142,11 +139,7 @@ int main(int argc, char** argv)
 	);
 	myMesh->loadMesh("../res/wine_barrel_01_4k.blend/wine_barrel_01_4k.obj");
 
-	myGrid = new grid(
-		myShader->positionLoc,
-		myShader->isManualSetColorLoc,
-		myShader->myColorLoc
-	);
+	myGrid = new grid();
 
 	initGlut();
 

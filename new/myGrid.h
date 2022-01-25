@@ -4,80 +4,71 @@
 #include <freeglut.h>
 #include "my_utilis.h"
 
+struct rectangle
+{
+	vec2 vertices[4];
+};
+
 class grid
 {
 public:
-	grid(GLint xPositionLoc, GLint xIsManSetColorLoc, GLint xMyColorLoc)
+	grid()
 	{
-		positionLoc = xPositionLoc;
-		isManSetColorLoc = xIsManSetColorLoc;
-		myColorLoc = xMyColorLoc;
-
-		initVBO();
+		recs[0][0].vertices[0] = vec2(-1, 1);
+		recs[0][0].vertices[1] = vec2(-1 + 0.4, 1);
+		recs[0][0].vertices[2] = vec2(-1 + 0.4, 1 - 0.4);
+		recs[0][0].vertices[3] = vec2(-1, 1 - 0.4);
+		for (int i = 0; i < 5; i++)
+		{
+			for (int j = 1; j < 5; j++)
+			{
+				recs[i][j] = recs[i][j - 1];
+				for (int k = 0; k < 4; k++)
+				{
+					recs[i][j].vertices[k].x += 0.4;
+				}
+			}
+			if (i == 4)
+			{
+				break;
+			}
+			recs[i + 1][0] = recs[i][0];
+			for (int k = 0; k < 4; k++)
+			{
+				recs[i + 1][0].vertices[k].y -= 0.4;
+			}
+		}
 	}
 
 	void render()
 	{
-		vec3 color(1.0f, 0.0f, 0.0f);
-		glUniform1i(isManSetColorLoc, 1);
-		glUniform3f(myColorLoc, color.x, color.y, color.z);
-		//glBindBuffer(GL_ARRAY_BUFFER, VBOLineX[0]);
-		//glEnableVertexAttribArray(positionLoc);
-		//glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
-		//glDrawArrays(GL_LINES, 0, 2);
-		//glDisableVertexAttribArray(positionLoc);
-		for (int i = 0; i < 6; i++)
+		for (int i = 0; i < 5; i++)
 		{
-			glBindBuffer(GL_ARRAY_BUFFER, VBOLineX[i]);
-			glEnableVertexAttribArray(positionLoc);
-			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
-			glDrawArrays(GL_LINES, 0, 2);
-			glDisableVertexAttribArray(positionLoc);
+			for (int j = 0; j < 5; j++)
+			{
+				glBegin(GL_LINES);
+				glVertex2f(recs[i][j].vertices[0].x, recs[i][j].vertices[0].y);
+				glVertex2f(recs[i][j].vertices[1].x, recs[i][j].vertices[1].y);
+				glEnd();
+
+				glBegin(GL_LINES);
+				glVertex2f(recs[i][j].vertices[1].x, recs[i][j].vertices[1].y);
+				glVertex2f(recs[i][j].vertices[2].x, recs[i][j].vertices[2].y);
+				glEnd();
+
+				glBegin(GL_LINES);
+				glVertex2f(recs[i][j].vertices[2].x, recs[i][j].vertices[2].y);
+				glVertex2f(recs[i][j].vertices[3].x, recs[i][j].vertices[3].y);
+				glEnd();
+
+				glBegin(GL_LINES);
+				glVertex2f(recs[i][j].vertices[3].x, recs[i][j].vertices[3].y);
+				glVertex2f(recs[i][j].vertices[0].x, recs[i][j].vertices[0].y);
+				glEnd();
+			}
 		}
-		for (int i = 0; i < 6; i++)
-		{
-			glBindBuffer(GL_ARRAY_BUFFER, VBOLineY[i]);
-			glEnableVertexAttribArray(positionLoc);
-			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 03 * sizeof(float), 0);
-			glDrawArrays(GL_LINES, 0, 2);
-			glDisableVertexAttribArray(positionLoc);
-		}
-		glUniform1i(isManSetColorLoc, 0);
 	}
 private:
-	GLint positionLoc;
-	GLuint VBOLineX[6];
-	GLuint VBOLineY[6];
+	rectangle recs[5][5];
 
-	//the uniform location
-	GLint isManSetColorLoc;
-	GLint myColorLoc;
-
-	void initVBO()
-	{
-		//set the lines horizontally
-		vec3 lines[2];
-		lines[0] = vec3(0.0f, 5.0f, 0.0f);
-		lines[1] = vec3(5.0f, 5.0f, 0.0f);
-		for (int i = 0; i < 6; i++)
-		{
-			glGenBuffers(1, &VBOLineX[i]);
-			glBindBuffer(GL_ARRAY_BUFFER, VBOLineX[i]);
-			glBufferData(GL_ARRAY_BUFFER, sizeof(lines), lines, GL_STATIC_DRAW);
-			lines[0].y--;
-			lines[1].y--;
-		}
-
-		//set the lines vertically
-		lines[0] = vec3(0.0f, 5.0f, 0.0f);
-		lines[1] = vec3(0.0f, 0.0f, 0.0f);
-		for (int i = 0; i < 6; i++)
-		{
-			glGenBuffers(1, &VBOLineY[i]);
-			glBindBuffer(GL_ARRAY_BUFFER, VBOLineY[i]);
-			glBufferData(GL_ARRAY_BUFFER, sizeof(lines), lines, GL_STATIC_DRAW);
-			lines[0].x++;
-			lines[1].x++;
-		}
-	}
 };
