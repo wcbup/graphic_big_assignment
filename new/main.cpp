@@ -89,12 +89,21 @@ void passiveMouse(int x, int y)
 	myCamera.onMouse(x, y);
 }
 
+void myMouse(int button, int state, int x, int y)
+{
+	if (state == GLUT_DOWN && button == GLUT_LEFT_BUTTON)
+	{
+		myGrid->handleClick(x, y);
+	}
+}
+
 void initGlut()
 {
 	glutDisplayFunc(renderScene);
 	glutKeyboardFunc(keyboard);
 	glutSpecialFunc(specialKeyboard);
 	glutPassiveMotionFunc(passiveMouse);
+	glutMouseFunc(myMouse);
 }
 
 int main(int argc, char** argv)
@@ -139,7 +148,7 @@ int main(int argc, char** argv)
 	);
 	myMesh->loadMesh("../res/wine_barrel_01_4k.blend/wine_barrel_01_4k.obj");
 
-	myGrid = new grid();
+	myGrid = new grid(WINDOW_WIDTH, WINDOW_HEIGHT);
 
 	initGlut();
 
