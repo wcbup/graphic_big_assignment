@@ -44,6 +44,9 @@
     <ClInclude Include="assemblyLine.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="product.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="shader.vs">

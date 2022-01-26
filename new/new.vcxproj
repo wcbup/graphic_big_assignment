@@ -156,6 +156,7 @@
     <ClInclude Include="myShader.h" />
     <ClInclude Include="myCamera.h" />
     <ClInclude Include="my_utilis.h" />
+    <ClInclude Include="product.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="shader.fs" />
