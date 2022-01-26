@@ -11,6 +11,7 @@
 #include "myGrid.h"
 #include "basicUnit.h"
 #include "assemblyLine.h"
+#include "product.h"
 
 #define WINDOW_WIDTH  1280
 #define WINDOW_HEIGHT 720
@@ -25,6 +26,7 @@ shader* myShader = NULL;
 grid* myGrid = NULL;
 basicUnit* myUnit = NULL;
 assemblyLine* myAssembleLine = NULL;
+product* pProduct = NULL;
 
 bool isInEditMode = false;
 
@@ -55,9 +57,12 @@ void renderInNormalMode()
 	dirLight.calLocation(WVP);
 	myShader->setDirectionalLight(dirLight);
 
-	myMesh->render();
+	//myMesh->render();
 
 	//myUnit->render();
+
+	pProduct->setWVP(WVP);
+	pProduct->render();
 
 	myAssembleLine->setWVP(WVP);
 	myAssembleLine->render();
@@ -105,6 +110,7 @@ void keyboard(unsigned char key, int mouse_x, int mouse_y)
 		{
 			myShader->enable();
 			myAssembleLine->setClick(myGrid->isClick);
+			pProduct->setClick(myGrid->isClick);
 
 			//fix the bug of the camera move up unwantedly
 			myCamera.handleKeyBoard(GLUT_KEY_DOWN);
@@ -178,6 +184,8 @@ int main(int argc, char** argv)
 	myGrid = new grid(WINDOW_WIDTH, WINDOW_HEIGHT);
 	myUnit = new basicUnit(myShader);
 	myAssembleLine = new assemblyLine(WINDOW_WIDTH, WINDOW_HEIGHT, myShader);
+	pProduct = new product("../res/wine_barrel_01_4k.blend/wine_barrel_01_4k.obj",
+		myShader, dirLight);
 
 	initGlut();
 

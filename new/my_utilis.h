@@ -372,6 +372,25 @@ public:
 			0.0f, 0.0f, 0.0f, 1.0f);
 		matrix = rotate * matrix;
 	}
+
+	//reset the matrix
+	void reset()
+	{
+		for (int i = 0; i < 4; i++)
+		{
+			for (int j = 0; j < 4; j++)
+			{
+				if (i == j)
+				{
+					matrix.m[i][j] = 1;
+				}
+				else
+				{
+					matrix.m[i][j] = 0;
+				}
+			}
+		}
+	}
 private:
 	//init to be identity matrix
 	mat4 matrix;
