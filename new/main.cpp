@@ -105,6 +105,10 @@ void keyboard(unsigned char key, int mouse_x, int mouse_y)
 		{
 			myShader->enable();
 			myAssembleLine->setClick(myGrid->isClick);
+
+			//fix the bug of the camera move up unwantedly
+			myCamera.handleKeyBoard(GLUT_KEY_DOWN);
+			myCamera.handleKeyBoard(GLUT_KEY_DOWN);
 		}
 	}
 	myCamera.handleKeyBoard(key);
@@ -168,15 +172,7 @@ int main(int argc, char** argv)
 	myShader->setTextureUnit(GL_TEXTURE0);
 
 	//pass in the uniform location in the shader
-	myMesh = new modelLoader(
-		myShader->positionLoc,
-		myShader->texCoorLocation,
-		myShader->samplerLoc,
-		myShader->normalLocation,
-		myShader->materialLocation,
-		myShader->hasTexLoc,
-		myShader->isManualSetColorLoc
-	);
+	myMesh = new modelLoader(myShader);
 	myMesh->loadMesh("../res/wine_barrel_01_4k.blend/wine_barrel_01_4k.obj");
 
 	myGrid = new grid(WINDOW_WIDTH, WINDOW_HEIGHT);

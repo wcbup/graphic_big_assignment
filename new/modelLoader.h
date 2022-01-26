@@ -8,18 +8,9 @@
 class modelLoader
 {
 public:
-	modelLoader(GLint _postionLocation, GLint _texCoordLocation,
-		GLint _samplerLocation, GLint _normalLocation,
-		const materialLoc& _materialLocation, GLint _hasTexLocation,
-		GLint _isManSetColorLoc)
+	modelLoader(shader* _pShader)
 	{
-		positionLocation = _postionLocation;
-		texCoordLocation = _texCoordLocation;
-		samplerLocation = _samplerLocation;
-		normalLocation = _normalLocation;
-		materialLocation = _materialLocation;
-		hasTextureLocation = _hasTexLocation;
-		isManSetColorLoc = _isManSetColorLoc;
+		pShader = _pShader;
 	}
 	~modelLoader()
 	{
@@ -76,15 +67,15 @@ public:
 			if (materials[materialIndex].pDiffuse != NULL)
 			{
 				materials[materialIndex].pDiffuse->bind(GL_TEXTURE0);
-				glUniform1i(samplerLocation, 0);
-				glUniform1i(hasTextureLocation, 1);
+				glUniform1i(pShader->samplerLoc, 0);
+				glUniform1i(pShader->hasTexLoc, 1);
 			}
 			else
 			{
-				glUniform1i(hasTextureLocation, 0);
+				glUniform1i(pShader->hasTexLoc, 0);
 			}
 
-			glUniform1i(isManSetColorLoc, 0);
+			glUniform1i(pShader->isManualSetColorLoc, 0);
 
 			glDrawElementsBaseVertex(GL_TRIANGLES,
 				meshes[i].numIndices,
@@ -304,12 +295,12 @@ private:
 
 	void setMaterial(const material& m)
 	{
-		glUniform3f(materialLocation.ambientColor,
+		glUniform3f(pShader->materialLocation.ambientColor,
 			m.ambientColor.x,
 			m.ambientColor.y,
 			m.ambientColor.z
 		);
-		glUniform3f(materialLocation.diffuseColor,
+		glUniform3f(pShader->materialLocation.diffuseColor,
 			m.diffuseColor.x,
 			m.diffuseColor.y,
 			m.diffuseColor.z
@@ -323,16 +314,16 @@ private:
 		glBufferData(GL_ARRAY_BUFFER,
 			sizeof(positions[0]) * positions.size(), &positions[0],
 			GL_STATIC_DRAW);
-		glEnableVertexAttribArray(positionLocation);
-		glVertexAttribPointer(positionLocation, 3, GL_FLOAT,
+		glEnableVertexAttribArray(pShader->positionLoc);
+		glVertexAttribPointer(pShader->positionLoc, 3, GL_FLOAT,
 			GL_FALSE, 0, 0);
 
 		glBindBuffer(GL_ARRAY_BUFFER, buffers[TEXCOORD_VB]);
 		glBufferData(GL_ARRAY_BUFFER,
 			sizeof(texcoords[0]) * texcoords.size(), &texcoords[0],
 			GL_STATIC_DRAW);
-		glEnableVertexAttribArray(texCoordLocation);
-		glVertexAttribPointer(texCoordLocation, 2, GL_FLOAT,
+		glEnableVertexAttribArray(pShader->texCoorLocation);
+		glVertexAttribPointer(pShader->texCoorLocation, 2, GL_FLOAT,
 			GL_FALSE, 0, 0);
 
 		glBindBuffer(GL_ARRAY_BUFFER, buffers[NORMAL_VB]);
@@ -340,8 +331,8 @@ private:
 			sizeof(normals[0]) * normals.size(),
 			&normals[0],
 			GL_STATIC_DRAW);
-		glEnableVertexAttribArray(normalLocation);
-		glVertexAttribPointer(normalLocation, 3, GL_FLOAT,
+		glEnableVertexAttribArray(pShader->normalLocation);
+		glVertexAttribPointer(pShader->normalLocation, 3, GL_FLOAT,
 			GL_FALSE, 0, 0);
 
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers[INDEX_BUFFER]);
@@ -386,12 +377,5 @@ private:
 	vector<vec2> texcoords;
 	vector<unsigned int> indices;
 
-	//the uniform location in shader
-	GLint positionLocation;
-	GLint texCoordLocation;
-	GLint normalLocation;
-	GLint samplerLocation;
-	materialLoc materialLocation;
-	GLint hasTextureLocation;
-	GLint isManSetColorLoc;
+	shader* pShader = NULL;
 };

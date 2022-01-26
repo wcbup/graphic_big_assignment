@@ -77,6 +77,7 @@ public:
 		}
 		case GLUT_KEY_UP:
 		{
+			//printf("camera move up\n");
 			pos = pos + head_up;
 			break;
 		}
