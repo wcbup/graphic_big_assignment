@@ -124,9 +124,9 @@ public:
 		vec3 V = N.cross(U);
 
 		mat4 transform(
-			U.x, U.y, U.z, -pos.x,
-			V.x, V.y, V.z, -pos.y,
-			N.x, N.y, N.z, -pos.z,
+			U.x, U.y, U.z, 0.0f,
+			V.x, V.y, V.z, 0.0f,
+			N.x, N.y, N.z, 0.0f,
 			0.0f, 0.0f, 0.0f, 1.0f
 		);
 
