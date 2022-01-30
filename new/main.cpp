@@ -1,3 +1,6 @@
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#define _CRT_SECURE_NO_WARNINGS
+#include <stb_image_write.h>
 #include <glew.h>
 #include <freeglut.h>
 #include <stdio.h>
@@ -12,7 +15,6 @@
 #include "basicUnit.h"
 #include "assemblyLine.h"
 #include "product.h"
-
 #define WINDOW_WIDTH  1280
 #define WINDOW_HEIGHT 720
 
@@ -88,7 +90,18 @@ void renderScene()
 
 	glutSwapBuffers();
 }
+/* 截屏保存 */
+static int saveNum = 0;	// 截屏次数，注意重开时覆盖截图
+void savePic()
+{
+	saveNum++;
+	GLubyte* pixels = new GLubyte[WINDOW_WIDTH * WINDOW_HEIGHT * 3];
+	glReadPixels(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, GL_RGB, GL_UNSIGNED_BYTE, pixels);
 
+	stbi_flip_vertically_on_write(true);
+	string savePath = "../outputPic" + to_string(saveNum) + ".bmp";
+	stbi_write_bmp(savePath.c_str(), WINDOW_WIDTH, WINDOW_HEIGHT, 3, pixels);
+}
 void keyboard(unsigned char key, int mouse_x, int mouse_y)
 {
 	if (key == 'i')
@@ -98,6 +111,10 @@ void keyboard(unsigned char key, int mouse_x, int mouse_y)
 	else if (key == 'o')
 	{
 		myProjection.zoomOut();
+	}
+	else if (key == 'm')
+	{
+		savePic();
 	}
 	else if (key == 'e')
 	{
